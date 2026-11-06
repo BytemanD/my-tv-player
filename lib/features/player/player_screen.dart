@@ -801,7 +801,8 @@ class _PlayerScreenState extends State<PlayerScreen>
                     TvButton(
                       icon: Icons.more_vert_rounded,
                       style: TvButtonStyle.filled,
-                      useAccentBackground: true,
+                      backgroundColor:
+                          LumaColors.primary.withValues(alpha: 0.40),
                       compact: true,
                       square: true,
                       onTap: () {

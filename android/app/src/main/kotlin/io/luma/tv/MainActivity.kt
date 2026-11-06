@@ -23,10 +23,12 @@ class MainActivity : FlutterActivity() {
         private const val CHANNEL = "luma/storage"
         private const val REQUEST_PICK_FOLDER = 4101
         private const val REQUEST_READ_STORAGE = 4102
+        private const val REQUEST_STORAGE_PERMISSION = 4103
         private const val TAG = "Luma/Storage"
     }
 
     private var pendingPick: MethodChannel.Result? = null
+    private var pendingPermissionResult: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -40,6 +42,15 @@ class MainActivity : FlutterActivity() {
                         result.success(status)
                     }
                     "pickFolder" -> pickFolder(result)
+                    "requestStoragePermission" -> {
+                        pendingPermissionResult = result
+                        val status = requestStoragePermission()
+                        if (status != "runtime_requested") {
+                            pendingPermissionResult = null
+                            result.success(status)
+                        }
+                        // 若是 runtime_requested，等 onRequestPermissionsResult 回调再返回
+                    }
                     "getStorageVolumes" -> result.success(storageVolumes())
                     "openAppSettings" -> {
                         openAppSettings()
@@ -51,10 +62,14 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun hasAllFilesAccess(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Environment.isExternalStorageManager()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (Environment.isExternalStorageManager()) return true
+            return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) ==
+                PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(Manifest.permission.READ_MEDIA_VIDEO) ==
+                PackageManager.PERMISSION_GRANTED
         } else {
-            checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) ==
+            return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) ==
                 PackageManager.PERMISSION_GRANTED
         }
     }
@@ -94,6 +109,58 @@ class MainActivity : FlutterActivity() {
             }
             return "runtime_requested"
         }
+    }
+
+    /**
+     * 请求普通运行时存储权限（READ_EXTERNAL_STORAGE / READ_MEDIA_VIDEO）。
+     * 这会弹出系统标准对话框，用户点“允许”即可，不需要去设置页翻找
+     * “所有文件访问权限”。适合 Android TV 等无法打开 MANAGE_EXTERNAL_STORAGE
+     * 设置页的设备。
+     */
+    private fun requestStoragePermission(): String {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (hasAllFilesAccess()) return "already_granted"
+
+            val perms = mutableListOf<String>()
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) !=
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                perms.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
+            if (checkSelfPermission(Manifest.permission.READ_MEDIA_VIDEO) !=
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                perms.add(Manifest.permission.READ_MEDIA_VIDEO)
+            }
+            if (perms.isEmpty()) return "already_granted"
+
+            requestPermissions(perms.toTypedArray(), REQUEST_STORAGE_PERMISSION)
+            return "runtime_requested"
+        } else {
+            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) ==
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                return "already_granted"
+            }
+            requestPermissions(
+                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                REQUEST_STORAGE_PERMISSION,
+            )
+            return "runtime_requested"
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        val result = pendingPermissionResult ?: return
+        pendingPermissionResult = null
+        val granted = grantResults.isNotEmpty() && grantResults[0] ==
+            PackageManager.PERMISSION_GRANTED
+        result.success(if (granted) "granted" else "denied")
     }
 
     private fun startActivityIfAvailable(intent: Intent): Boolean {

@@ -85,7 +85,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       label: '添加目录',
                       icon: Icons.add_rounded,
                       style: TvButtonStyle.filled,
-                      useAccentBackground: true,
+                      backgroundColor: LumaColors.primary.withValues(alpha: 0.40),
                       compact: true,
                       onTap: () => showAddSourceDialog(context, controller),
                     ),

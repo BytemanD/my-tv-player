@@ -1,6 +1,7 @@
 import 'theme/classic.dart';
 import 'theme/byzantium.dart';
 import 'theme/pine_amber.dart';
+import 'theme/bean_sand.dart';
 import 'theme_option.dart';
 
 /// Registry of every built-in theme. Create one file per theme under
@@ -10,8 +11,9 @@ abstract final class LumaThemes {
   static const classic = classicTheme;
   static const byzantium = byzantiumTheme;
   static const pineAmber = pineAmberTheme;
+  static const beanSand = beanSandTheme;
 
-  static const all = [classicTheme, byzantiumTheme, pineAmberTheme];
+  static const all = [classicTheme, byzantiumTheme, pineAmberTheme, beanSandTheme];
 
   static LumaThemeOption byId(String? id) =>
       all.firstWhere((option) => option.id == id, orElse: () => classicTheme);

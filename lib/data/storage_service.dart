@@ -88,6 +88,24 @@ class StorageService {
     }
   }
 
+  /// Requests the normal runtime storage permission (READ_EXTERNAL_STORAGE /
+  /// READ_MEDIA_VIDEO). This shows a standard system dialog ("Allow this app to
+  /// access photos, media, and files on your device?") instead of sending the
+  /// user to the hard-to-find "All-files-access" settings page. Returns
+  /// "already_granted", "runtime_requested", "granted", "denied", or
+  /// "unsupported".
+  Future<String> requestStoragePermission() async {
+    if (_isDesktop) return 'already_granted';
+    try {
+      return await _channel.invokeMethod<String>('requestStoragePermission') ??
+          'unsupported';
+    } on PlatformException {
+      return 'unsupported';
+    } on MissingPluginException {
+      return 'unsupported';
+    }
+  }
+
   Future<PickedFolder?> pickFolder() async {
     if (_isDesktop) {
       final path = await getDirectoryPath(confirmButtonText: '选择此文件夹');

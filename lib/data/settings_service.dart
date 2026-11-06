@@ -63,14 +63,9 @@ class SettingsService extends ChangeNotifier {
     return seekIntervalOptions.contains(value) ? value! : 10;
   }
 
-  /// Selected theme, e.g. 'classic', 'byzantium', or 'pineAmber'.
-  /// Defaults to classic so existing installs keep their look until they pick another.
-  String get themeId {
-    final value = _prefs.getString(_kThemeId);
-    if (value == 'byzantium') return 'byzantium';
-    if (value == 'pineAmber') return 'pineAmber';
-    return 'classic';
-  }
+  /// Selected theme, e.g. 'classic', 'byzantium', 'pineAmber', 'beanSand'.
+  /// Defaults to classic. Unknown ids fall back to classic via LumaThemes.byId().
+  String get themeId => _prefs.getString(_kThemeId) ?? 'classic';
 
   /// Mode for the *current* theme; stored per theme so each theme remembers
   /// its own preferred 明/暗. Defaults to dark.
@@ -121,11 +116,7 @@ class SettingsService extends ChangeNotifier {
   }
 
   Future<void> setThemeId(String value) async {
-    String stored = value;
-    if (value == 'byzantium') stored = 'byzantium';
-    if (value == 'pineAmber') stored = 'pineAmber';
-    if (value == 'classic') stored = 'classic';
-    await _prefs.setString(_kThemeId, stored);
+    await _prefs.setString(_kThemeId, value);
     notifyListeners();
   }
 

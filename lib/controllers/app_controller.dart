@@ -211,21 +211,42 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> requestStorageAccess() async {
-    final status = await storage.requestAllFilesAccess();
+    // 优先尝试普通运行时权限：系统弹标准对话框，用户点允许即可（像 iHub 那样）。
+    final status = await storage.requestStoragePermission();
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    await refreshAccessState();
+    if (hasStorageAccess) {
+      showNotice('文件访问权限已授予');
+      return;
+    }
+
+    // 普通权限被拒绝或设备不支持，fallback 到 MANAGE_EXTERNAL_STORAGE 设置页。
+    final manageStatus = await storage.requestAllFilesAccess();
     await Future<void>.delayed(const Duration(milliseconds: 400));
     await refreshAccessState();
     if (hasStorageAccess) {
       showNotice('文件访问权限已授予');
       return;
     }
-    showNotice(switch (status) {
-      'opened_manage_app' => '已打开权限页：请允许“所有文件访问权限”，返回 Luma 后会自动刷新',
-      'opened_manage_all' => '已打开“所有文件访问”列表：找到 Luma 并允许，返回后会自动刷新',
-      'opened_app_details' => '已打开应用详情：请前往 权限 → 所有文件访问 开启，返回后会自动刷新',
-      'runtime_requested' => '请在弹出的对话框中允许存储权限',
-      'already_granted' => '权限已授予',
-      _ => '此设备没有可用的权限设置页，请前往 设置 → 应用 → Luma → 权限，手动开启“所有文件访问”',
-    }, error: status != 'opened_manage_app' && status != 'opened_manage_all');
+
+    showNotice(
+      switch (manageStatus) {
+        'opened_manage_app' =>
+            '已打开权限页：请允许“所有文件访问权限”，返回 Luma 后会自动刷新',
+        'opened_manage_all' =>
+            '已打开“所有文件访问”列表：找到 Luma 并允许，返回后会自动刷新',
+        'opened_app_details' =>
+            '已打开应用详情：请前往 权限 → 所有文件访问 开启，返回后会自动刷新',
+        'runtime_requested' => '请在弹出的对话框中允许存储权限',
+        'already_granted' => '权限已授予',
+        _ =>
+            '此设备没有可用的权限设置页，请前往 设置 → 应用 → Luma → 权限，手动开启“所有文件访问”',
+      },
+      error: status != 'opened_manage_app' &&
+          status != 'opened_manage_all' &&
+          manageStatus != 'opened_manage_app' &&
+          manageStatus != 'opened_manage_all',
+    );
   }
 
   // ---------------------------------------------------------------- scanning

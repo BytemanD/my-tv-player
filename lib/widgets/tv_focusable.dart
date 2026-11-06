@@ -129,7 +129,7 @@ class TvButton extends StatelessWidget {
     this.icon,
     this.onTap,
     this.style = TvButtonStyle.filled,
-    this.useAccentBackground = false,
+    this.backgroundColor,
     this.autofocus = false,
     this.enabled = true,
     this.compact = false,
@@ -140,7 +140,7 @@ class TvButton extends StatelessWidget {
   final IconData? icon;
   final VoidCallback? onTap;
   final TvButtonStyle style;
-  final bool useAccentBackground;
+  final Color? backgroundColor;
   final bool autofocus;
   final bool enabled;
   final bool compact;
@@ -154,18 +154,21 @@ class TvButton extends StatelessWidget {
       onTap: onTap,
       scale: 1.04,
       builder: (context, focused) {
+        final hasCustomColor = backgroundColor != null;
         final foreground = switch (style) {
           TvButtonStyle.filled =>
-            focused ? const Color(0xFF221A0B) : LumaColors.onPrimary,
+            focused
+                ? const Color(0xFF221A0B)
+                : hasCustomColor
+                ? Colors.white
+                : LumaColors.onPrimary,
           TvButtonStyle.outline =>
             focused ? LumaColors.onPrimary : LumaColors.textOnSurface,
           TvButtonStyle.ghost => LumaColors.textOnSurface,
         };
-        final backgroundColor = useAccentBackground && style == TvButtonStyle.filled
-            ? LumaColors.primary.withValues(alpha: 0.40)
-            : null;
         final background = switch (style) {
-          TvButtonStyle.filled => focused ? Colors.white : backgroundColor ?? LumaColors.primary,
+          TvButtonStyle.filled =>
+            focused ? Colors.white : backgroundColor ?? LumaColors.primary,
           TvButtonStyle.outline =>
             focused ? LumaColors.primary : Colors.transparent,
           TvButtonStyle.ghost =>

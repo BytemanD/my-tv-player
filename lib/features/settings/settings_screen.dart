@@ -400,7 +400,8 @@ class SettingsScreen extends StatelessWidget {
                         label: '清空',
                         icon: Icons.delete_outline_rounded,
                         compact: true,
-                        style: TvButtonStyle.outline,
+                        style: TvButtonStyle.filled,
+                        backgroundColor: LumaColors.danger.withValues(alpha: 0.40),
                         enabled: controller.entries.isNotEmpty,
                         onTap: () => _confirmClear(context, controller),
                       ),
@@ -657,7 +658,6 @@ class _KeyRow extends StatelessWidget {
             icon: Icons.tune_rounded,
             compact: true,
             onTap: onTap,
-            // useAccentBackground: true,
           ),
         ],
       ),
@@ -770,7 +770,7 @@ class _PermissionRow extends StatelessWidget {
           TvButton(
             label: granted ? '重新检查' : '去授权',
             compact: true,
-            style: granted ? TvButtonStyle.outline : TvButtonStyle.filled,
+            style: TvButtonStyle.filled,
             onTap: () async {
               if (!granted) {
                 await controller.requestStorageAccess();
