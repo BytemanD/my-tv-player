@@ -424,7 +424,9 @@ class SettingsScreen extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    'Luma 1.0.0',
+                    controller.appVersion.isNotEmpty
+                        ? controller.appVersion
+                        : 'Luma',
                     style: TextStyle(
                       fontSize: 12,
                       letterSpacing: 1.4,

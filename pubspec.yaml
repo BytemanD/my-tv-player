@@ -1,7 +1,7 @@
 name: luma_tv
 description: A minimal, fast Android TV media player with a poster wall and automatic TMDB scraping.
 publish_to: "none"
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: ^3.13.0
@@ -38,6 +38,7 @@ dependencies:
   intl: ^0.20.3
   sqflite_common_ffi: ^2.4.5
   file_selector: ^1.1.0
+  package_info_plus: ^10.2.2
 
 dev_dependencies:
   flutter_test:

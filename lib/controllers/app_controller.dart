@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../data/app_database.dart';
 import '../data/library_source.dart';
@@ -63,6 +64,8 @@ class AppController extends ChangeNotifier {
 
   DateTime? lastScanAt;
 
+  String appVersion = '';
+
   bool get hasTmdbKey => settings.hasTmdbKey;
   bool get libraryIsEmpty => entries.isEmpty;
   bool get isBusy => scanning || scraping;
@@ -120,6 +123,8 @@ class AppController extends ChangeNotifier {
     initializing = true;
     notifyListeners();
     try {
+      final info = await PackageInfo.fromPlatform();
+      appVersion = '${info.appName} ${info.version}';
       hasStorageAccess = await storage.hasAllFilesAccess();
       sources = await repository.sources();
       await refreshLibrary(notify: false);
