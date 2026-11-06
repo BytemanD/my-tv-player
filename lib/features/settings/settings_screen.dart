@@ -401,7 +401,9 @@ class SettingsScreen extends StatelessWidget {
                         icon: Icons.delete_outline_rounded,
                         compact: true,
                         style: TvButtonStyle.filled,
-                        backgroundColor: LumaColors.danger.withValues(alpha: 0.40),
+                        backgroundColor: LumaColors.danger.withValues(
+                          alpha: 0.40,
+                        ),
                         enabled: controller.entries.isNotEmpty,
                         onTap: () => _confirmClear(context, controller),
                       ),

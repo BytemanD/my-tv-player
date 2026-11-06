@@ -40,7 +40,7 @@ const beanSandDark = LumaPalette(
   surface: Color.fromARGB(255, 39, 39, 36),
   background: Color(0xFF1C1A1E),
   backgroundSoft: Color(0xFF222026),
-  surfaceHigh: Color.fromARGB(255, 27, 26, 25),
+  surfaceHigh: Color.fromARGB(255, 25, 23, 23),
   surfaceGlass: Color.fromARGB(255, 11, 10, 10),
   line: Color(0xFFD8CFC4),
   lineSoft: Color(0xFF222026),

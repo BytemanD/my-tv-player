@@ -190,12 +190,22 @@ class TvButton extends StatelessWidget {
                 )
               : null,
           padding: EdgeInsets.symmetric(
-            horizontal: square && label.isEmpty ? 0 : compact ? 18 : 26,
-            vertical: square && label.isEmpty ? 0 : compact ? 11 : 14,
+            horizontal: square && label.isEmpty
+                ? 0
+                : compact
+                ? 18
+                : 26,
+            vertical: square && label.isEmpty
+                ? 0
+                : compact
+                ? 11
+                : 14,
           ),
           decoration: BoxDecoration(
             color: background,
-            shape: square && label.isEmpty ? BoxShape.circle : BoxShape.rectangle,
+            shape: square && label.isEmpty
+                ? BoxShape.circle
+                : BoxShape.rectangle,
             borderRadius: square && label.isEmpty
                 ? null
                 : BorderRadius.circular(100),
@@ -348,7 +358,7 @@ class TvChip extends StatelessWidget {
                   ? LumaColors.primary
                   : focused
                   ? LumaColors.accent
-                  : LumaColors.line,
+                  : LumaColors.primarySoft,
               width: selected || focused ? 1.2 : 1,
             ),
           ),
