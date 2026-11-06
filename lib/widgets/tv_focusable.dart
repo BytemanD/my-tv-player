@@ -125,7 +125,7 @@ enum TvButtonStyle { filled, outline, ghost }
 class TvButton extends StatelessWidget {
   const TvButton({
     super.key,
-    required this.label,
+    this.label = '',
     this.icon,
     this.onTap,
     this.style = TvButtonStyle.filled,
@@ -133,6 +133,7 @@ class TvButton extends StatelessWidget {
     this.autofocus = false,
     this.enabled = true,
     this.compact = false,
+    this.square = false,
   });
 
   final String label;
@@ -143,6 +144,7 @@ class TvButton extends StatelessWidget {
   final bool autofocus;
   final bool enabled;
   final bool compact;
+  final bool square;
 
   @override
   Widget build(BuildContext context) {
@@ -160,7 +162,7 @@ class TvButton extends StatelessWidget {
           TvButtonStyle.ghost => LumaColors.textOnSurface,
         };
         final backgroundColor = useAccentBackground && style == TvButtonStyle.filled
-            ? LumaColors.accent
+            ? LumaColors.primary.withValues(alpha: 0.40)
             : null;
         final background = switch (style) {
           TvButtonStyle.filled => focused ? Colors.white : backgroundColor ?? LumaColors.primary,
@@ -178,13 +180,22 @@ class TvButton extends StatelessWidget {
         };
         return AnimatedContainer(
           duration: const Duration(milliseconds: 160),
+          constraints: square && label.isEmpty
+              ? BoxConstraints.tightFor(
+                  width: compact ? 44.0 : 52.0,
+                  height: compact ? 44.0 : 52.0,
+                )
+              : null,
           padding: EdgeInsets.symmetric(
-            horizontal: compact ? 18 : 26,
-            vertical: compact ? 11 : 14,
+            horizontal: square && label.isEmpty ? 0 : compact ? 18 : 26,
+            vertical: square && label.isEmpty ? 0 : compact ? 11 : 14,
           ),
           decoration: BoxDecoration(
             color: background,
-            borderRadius: BorderRadius.circular(100),
+            shape: square && label.isEmpty ? BoxShape.circle : BoxShape.rectangle,
+            borderRadius: square && label.isEmpty
+                ? null
+                : BorderRadius.circular(100),
             border: Border.all(color: borderColor, width: 1.2),
             boxShadow: focused
                 ? [
@@ -196,24 +207,36 @@ class TvButton extends StatelessWidget {
                   ]
                 : null,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: compact ? 18 : 20, color: foreground),
-                const SizedBox(width: 9),
-              ],
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: compact ? 14 : 15,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.1,
-                  color: enabled ? foreground : LumaColors.textMuted,
+          child: square && label.isEmpty
+              ? Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (icon != null) ...[
+                        Icon(icon, size: compact ? 18 : 20, color: foreground),
+                      ],
+                    ],
+                  ),
+                )
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (icon != null) ...[
+                      Icon(icon, size: compact ? 18 : 20, color: foreground),
+                      const SizedBox(width: 9),
+                    ],
+                    if (label.isNotEmpty)
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: compact ? 14 : 15,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.1,
+                          color: enabled ? foreground : LumaColors.textMuted,
+                        ),
+                      ),
+                  ],
                 ),
-              ),
-            ],
-          ),
         );
       },
     );

@@ -13,7 +13,6 @@ import '../../core/formatters.dart';
 import '../../core/theme.dart';
 import '../../data/models.dart';
 import '../../data/settings_service.dart';
-import '../../widgets/logo.dart';
 import '../../widgets/tv_focusable.dart';
 
 class PlayerScreen extends StatefulWidget {
@@ -800,10 +799,11 @@ class _PlayerScreenState extends State<PlayerScreen>
                       ),
                     ),
                     TvButton(
-                      label: '播放选项',
-                      icon: Icons.keyboard_arrow_up_rounded,
-                      style: TvButtonStyle.outline,
+                      icon: Icons.more_vert_rounded,
+                      style: TvButtonStyle.filled,
+                      useAccentBackground: true,
                       compact: true,
+                      square: true,
                       onTap: () {
                         _markInteraction();
                         _openPanel();
@@ -972,212 +972,226 @@ class _PlayerScreenState extends State<PlayerScreen>
     final tracks = _player.state.tracks;
     final currentSubtitle = _player.state.track.subtitle.id;
     final currentAudio = _player.state.track.audio.id;
-    final panels = <Widget>[];
 
-    void section(String title) {
-      panels.add(
-        Padding(
-          padding: const EdgeInsets.only(top: 18, bottom: 8),
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.4,
-              color: LumaColors.textMutedOnSurface,
-            ),
+    Widget section(String title) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 16, bottom: 8),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.4,
+            color: LumaColors.textMutedOnSurface,
           ),
         ),
       );
     }
 
-    void option(
+    Widget option(
       String label, {
       required bool selected,
       required VoidCallback onTap,
       String? detail,
     }) {
-      panels.add(
-        TvFocusable(
-          onTap: onTap,
-          scale: 1.01,
-          builder: (context, focused) {
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 130),
-              margin: const EdgeInsets.only(bottom: 5),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: focused ? LumaColors.surfaceHigh : Colors.transparent,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: focused ? LumaColors.accent : Colors.transparent,
+      return TvFocusable(
+        onTap: onTap,
+        scale: 1.01,
+        builder: (context, focused) {
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 130),
+            margin: const EdgeInsets.only(bottom: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: focused ? LumaColors.surfaceHigh : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: focused ? LumaColors.accent : Colors.transparent,
+              ),
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 22,
+                  child: selected
+                      ? Icon(
+                          Icons.check_rounded,
+                          size: 17,
+                          color: LumaColors.primary,
+                        )
+                      : null,
                 ),
-              ),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 22,
-                    child: selected
-                        ? Icon(
-                            Icons.check_rounded,
-                            size: 17,
-                            color: LumaColors.primary,
-                          )
-                        : null,
-                  ),
-                  Expanded(
-                    child: Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13.5,
-                        color: focused
-                            ? LumaColors.textOnSurface
-                            : LumaColors.textDimOnSurface,
-                      ),
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      color: focused
+                          ? LumaColors.textOnSurface
+                          : LumaColors.textDimOnSurface,
                     ),
                   ),
-                  if (detail != null)
-                    Text(
-                      detail,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: LumaColors.textMutedOnSurface,
-                      ),
+                ),
+                if (detail != null)
+                  Text(
+                    detail,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: LumaColors.textMutedOnSurface,
                     ),
-                ],
-              ),
-            );
-          },
-        ),
-      );
-    }
-
-    section('字幕');
-    option(
-      '关闭字幕',
-      selected: currentSubtitle == 'no',
-      onTap: () => _setSubtitle(SubtitleTrack.no()),
-    );
-    option(
-      '自动',
-      selected: currentSubtitle == 'auto',
-      onTap: () => _setSubtitle(SubtitleTrack.auto()),
-    );
-    for (var i = 0; i < tracks.subtitle.length; i++) {
-      final track = tracks.subtitle[i];
-      if (track.id == 'auto' || track.id == 'no') continue;
-      option(
-        track.title?.trim().isNotEmpty == true
-            ? track.title!
-            : (track.language ?? '字幕 ${i + 1}'),
-        selected: currentSubtitle == track.id,
-        detail: track.language,
-        onTap: () => _setSubtitle(track),
-      );
-    }
-
-    section('音轨');
-    for (var i = 0; i < tracks.audio.length; i++) {
-      final track = tracks.audio[i];
-      option(
-        track.title?.trim().isNotEmpty == true
-            ? track.title!
-            : (track.language ?? '音轨 ${i + 1}'),
-        selected: currentAudio == track.id,
-        detail: track.language,
-        onTap: () async {
-          await _player.setAudioTrack(track);
-          _panelMessage = '已切换音轨';
-          setState(() {});
+                  ),
+              ],
+            ),
+          );
         },
       );
     }
 
-    section('播放速度');
-    final speeds = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
-    panels.add(
-      Wrap(
-        spacing: 8,
-        runSpacing: 8,
+    // —— 视频 Tab ——
+    final videoTab = SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final speed in speeds)
-            TvChip(
-              label: '${speed}x',
-              selected: _speed == speed,
-              onTap: () async {
-                await _player.setRate(speed);
-                setState(() => _speed = speed);
-                _panelMessage = '播放速度 ${speed}x';
-              },
+          section('播放速度'),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
+                .map(
+                  (speed) => TvChip(
+                    label: '${speed}x',
+                    selected: _speed == speed,
+                    onTap: () async {
+                      await _player.setRate(speed);
+                      setState(() => _speed = speed);
+                      _panelMessage = '播放速度 ${speed}x';
+                    },
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 24),
+          section('快进 / 快退'),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: SettingsService.seekIntervalOptions
+                .map(
+                  (seconds) => TvChip(
+                    label: '$seconds秒',
+                    selected:
+                        widget.controller.settings.seekIntervalSeconds ==
+                        seconds,
+                    onTap: () async {
+                      await widget.controller.setSeekIntervalSeconds(seconds);
+                      if (!mounted) return;
+                      setState(() => _panelMessage = '跳转步长已设为 $seconds 秒');
+                    },
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 24),
+          section('画面'),
+          Row(
+            children: [
+              TvChip(
+                label: '适应画面',
+                selected: _fit == BoxFit.contain,
+                onTap: () => setState(() {
+                  _fit = BoxFit.contain;
+                  _panelMessage = '已切换为适应画面';
+                }),
+              ),
+              const SizedBox(width: 8),
+              TvChip(
+                label: '铺满屏幕',
+                selected: _fit == BoxFit.cover,
+                onTap: () => setState(() {
+                  _fit = BoxFit.cover;
+                  _panelMessage = '已切换为铺满屏幕';
+                }),
+              ),
+            ],
+          ),
+          if (_index + 1 < widget.queue.length) ...[
+            const SizedBox(height: 24),
+            section('播放'),
+            option(
+              '播放下一集',
+              selected: false,
+              onTap: () => _playIndex(_index + 1),
             ),
+          ],
         ],
       ),
     );
 
-    section('快进 / 快退');
-    panels.add(
-      Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (final seconds in SettingsService.seekIntervalOptions)
-            TvChip(
-              label: '$seconds秒',
-              selected:
-                  widget.controller.settings.seekIntervalSeconds == seconds,
-              onTap: () async {
-                await widget.controller.setSeekIntervalSeconds(seconds);
-                if (!mounted) return;
-                setState(() => _panelMessage = '跳转步长已设为 $seconds 秒');
-              },
-            ),
-        ],
+    // —— 字幕 Tab ——
+    final subtitleWidgets = <Widget>[
+      section('字幕'),
+      option(
+        '关闭字幕',
+        selected: currentSubtitle == 'no',
+        onTap: () => _setSubtitle(SubtitleTrack.no()),
       ),
-    );
-
-    section('画面');
-    panels.add(
-      Row(
-        children: [
-          TvChip(
-            label: '适应画面',
-            selected: _fit == BoxFit.contain,
-            onTap: () => setState(() {
-              _fit = BoxFit.contain;
-              _panelMessage = '已切换为适应画面';
-            }),
-          ),
-          const SizedBox(width: 8),
-          TvChip(
-            label: '铺满屏幕',
-            selected: _fit == BoxFit.cover,
-            onTap: () => setState(() {
-              _fit = BoxFit.cover;
-              _panelMessage = '已切换为铺满屏幕';
-            }),
-          ),
-        ],
+      option(
+        '自动',
+        selected: currentSubtitle == 'auto',
+        onTap: () => _setSubtitle(SubtitleTrack.auto()),
       ),
-    );
-
-    if (_index + 1 < widget.queue.length) {
-      section('播放');
-      option('播放下一集', selected: false, onTap: () => _playIndex(_index + 1));
-    }
-
-    if (_panelMessage != null) {
-      panels.add(
-        Padding(
-          padding: const EdgeInsets.only(top: 14),
-          child: Text(
-            _panelMessage!,
-            style: TextStyle(fontSize: 12, color: LumaColors.accent),
-          ),
+    ];
+    for (var i = 0; i < tracks.subtitle.length; i++) {
+      final track = tracks.subtitle[i];
+      if (track.id == 'auto' || track.id == 'no') continue;
+      subtitleWidgets.add(
+        option(
+          track.title?.trim().isNotEmpty == true
+              ? track.title!
+              : (track.language ?? '字幕 ${i + 1}'),
+          selected: currentSubtitle == track.id,
+          detail: track.language,
+          onTap: () => _setSubtitle(track),
         ),
       );
     }
+    final subtitleTab = SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: subtitleWidgets,
+      ),
+    );
+
+    // —— 音频 Tab ——
+    final audioWidgets = <Widget>[section('音轨')];
+    for (var i = 0; i < tracks.audio.length; i++) {
+      final track = tracks.audio[i];
+      audioWidgets.add(
+        option(
+          track.title?.trim().isNotEmpty == true
+              ? track.title!
+              : (track.language ?? '音轨 ${i + 1}'),
+          selected: currentAudio == track.id,
+          detail: track.language,
+          onTap: () async {
+            await _player.setAudioTrack(track);
+            _panelMessage = '已切换音轨';
+            setState(() {});
+          },
+        ),
+      );
+    }
+    final audioTab = SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: audioWidgets,
+      ),
+    );
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -1188,7 +1202,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         autofocus: true,
         child: Container(
           decoration: BoxDecoration(
-            color: Color(0xFF14161D),
+            color: LumaColors.primary.withValues(alpha: 0.40),
             border: Border(
               left: BorderSide(color: LumaColors.primaryDeep, width: 1),
             ),
@@ -1196,40 +1210,49 @@ class _PlayerScreenState extends State<PlayerScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 4),
-                child: Row(
-                  children: [
-                    const LumaMark(size: 22),
-                    const SizedBox(width: 10),
-                    Text(
-                      '播放选项',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: LumaColors.textOnSurface,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '按返回关闭',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: LumaColors.textMutedOnSurface,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: DefaultTabController(
+                  length: 3,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: panels,
+                    children: [
+                      TabBar(
+                        isScrollable: false,
+                        labelColor: LumaColors.accent,
+                        unselectedLabelColor: LumaColors.textDimOnSurface,
+                        indicatorColor: LumaColors.accent,
+                        indicatorWeight: 3,
+                        labelStyle: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        unselectedLabelStyle: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        tabs: const [
+                          Tab(text: '视频'),
+                          Tab(text: '字幕'),
+                          Tab(text: '音频'),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Expanded(
+                        child: TabBarView(
+                          children: [videoTab, subtitleTab, audioTab],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
+              if (_panelMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 14, left: 20, right: 20),
+                  child: Text(
+                    _panelMessage!,
+                    style: TextStyle(fontSize: 12, color: LumaColors.accent),
+                  ),
+                ),
             ],
           ),
         ),
@@ -1337,12 +1360,12 @@ class _ProgressBarState extends State<_ProgressBar> {
               _setSeeking(false);
             },
             child: SizedBox(
-              height: 28,
+              height: 32,
               child: Stack(
                 alignment: Alignment.centerLeft,
                 children: [
                   Container(
-                    height: 4,
+                    height: 6,
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.16),
                       borderRadius: BorderRadius.circular(4),
@@ -1351,7 +1374,7 @@ class _ProgressBarState extends State<_ProgressBar> {
                   FractionallySizedBox(
                     widthFactor: buffer,
                     child: Container(
-                      height: 4,
+                      height: 6,
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.28),
                         borderRadius: BorderRadius.circular(4),
@@ -1361,7 +1384,7 @@ class _ProgressBarState extends State<_ProgressBar> {
                   FractionallySizedBox(
                     widthFactor: activeFraction,
                     child: Container(
-                      height: 4,
+                      height: 6,
                       decoration: BoxDecoration(
                         color: LumaColors.accent,
                         borderRadius: BorderRadius.circular(4),
