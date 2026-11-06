@@ -30,8 +30,10 @@ class SettingsService extends ChangeNotifier {
   static const _kAutoSubtitle = 'auto_subtitle';
   static const _kAutoNext = 'auto_play_next';
   static const _kSeekIntervalSeconds = 'player_seek_interval_seconds';
+  static const _kRememberPlaybackSpeed = 'remember_playback_speed';
+  static const _kLastPlaybackSpeed = 'last_playback_speed';
   static const _kThemeId = 'theme_id';
-  static const _kThemeModePrefix = 'theme_mode_';
+  static const _kThemeMode = 'theme_mode';
 
   static const seekIntervalOptions = [5, 10, 15, 30, 60];
 
@@ -63,16 +65,22 @@ class SettingsService extends ChangeNotifier {
     return seekIntervalOptions.contains(value) ? value! : 10;
   }
 
+  /// 是否记住上一次的播放速度。打开后，下一个视频将沿用上次切换的速度。
+  bool get rememberPlaybackSpeed => _prefs.getBool(_kRememberPlaybackSpeed) ?? true;
+
+  /// 上一次使用的播放速度（倍率），默认 1.0。
+  double get lastPlaybackSpeed {
+    final value = _prefs.getDouble(_kLastPlaybackSpeed);
+    return value ?? 1.0;
+  }
+
   /// Selected theme, e.g. 'classic', 'byzantium', 'pineAmber', 'beanSand'.
   /// Defaults to classic. Unknown ids fall back to classic via LumaThemes.byId().
   String get themeId => _prefs.getString(_kThemeId) ?? 'classic';
 
-  /// Mode for the *current* theme; stored per theme so each theme remembers
-  /// its own preferred 明/暗. Defaults to dark.
+  /// Global light/dark mode, shared across all themes. Defaults to dark.
   String get themeMode =>
-      _prefs.getString('$_kThemeModePrefix$themeId') == 'light'
-      ? 'light'
-      : 'dark';
+      _prefs.getString(_kThemeMode) == 'light' ? 'light' : 'dark';
 
   Future<void> setTmdbApiKey(String value) async {
     await _prefs.setString(_kApiKey, value.trim());
@@ -115,6 +123,16 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setRememberPlaybackSpeed(bool value) async {
+    await _prefs.setBool(_kRememberPlaybackSpeed, value);
+    notifyListeners();
+  }
+
+  Future<void> setLastPlaybackSpeed(double value) async {
+    await _prefs.setDouble(_kLastPlaybackSpeed, value);
+    notifyListeners();
+  }
+
   Future<void> setThemeId(String value) async {
     await _prefs.setString(_kThemeId, value);
     notifyListeners();
@@ -122,7 +140,7 @@ class SettingsService extends ChangeNotifier {
 
   Future<void> setThemeMode(String value) async {
     await _prefs.setString(
-      '$_kThemeModePrefix$themeId',
+      _kThemeMode,
       value == 'light' ? 'light' : 'dark',
     );
     notifyListeners();

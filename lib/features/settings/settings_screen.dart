@@ -208,7 +208,7 @@ class SettingsScreen extends StatelessWidget {
                               label: '重新刮削全部',
                               icon: Icons.auto_awesome_rounded,
                               compact: true,
-                              style: TvButtonStyle.outline,
+                              style: TvButtonStyle.filled,
                               enabled:
                                   !controller.isBusy &&
                                   controller.hasTmdbKey &&
@@ -311,6 +311,13 @@ class SettingsScreen extends StatelessWidget {
                         description: '当前剧集结束后继续播放下一集',
                         value: controller.settings.autoPlayNext,
                         onChanged: controller.setAutoPlayNext,
+                      ),
+                      const _Hairline(),
+                      TvSwitch(
+                        title: '记住播放速度',
+                        description: '打开后，下一个视频将沿用上一次切换的播放速度',
+                        value: controller.settings.rememberPlaybackSpeed,
+                        onChanged: controller.setRememberPlaybackSpeed,
                       ),
                     ],
                   ),

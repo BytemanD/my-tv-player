@@ -510,6 +510,16 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setRememberPlaybackSpeed(bool value) async {
+    await settings.setRememberPlaybackSpeed(value);
+    notifyListeners();
+  }
+
+  Future<void> setLastPlaybackSpeed(double value) async {
+    await settings.setLastPlaybackSpeed(value);
+    notifyListeners();
+  }
+
   Future<void> completeOnboarding() async {
     await settings.setOnboardingComplete(true);
     notifyListeners();

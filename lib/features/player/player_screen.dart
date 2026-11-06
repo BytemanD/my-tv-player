@@ -244,6 +244,16 @@ class _PlayerScreenState extends State<PlayerScreen>
       final saved = await widget.controller.progressFor(media);
       await _player.open(Media(media.path), play: true);
       _playerFocus.requestFocus();
+
+      // 恢复记住的播放速度
+      if (widget.controller.settings.rememberPlaybackSpeed) {
+        final remembered = widget.controller.settings.lastPlaybackSpeed;
+        if ((remembered - _speed).abs() > 0.001) {
+          _speed = remembered;
+          await _player.setRate(remembered);
+        }
+      }
+
       if (saved != null &&
           saved.positionMs > 15000 &&
           !saved.completed &&
@@ -485,6 +495,9 @@ class _PlayerScreenState extends State<PlayerScreen>
     if (!mounted) return;
     setState(() => _speed = next);
     _showControls();
+    if (widget.controller.settings.rememberPlaybackSpeed) {
+      await widget.controller.setLastPlaybackSpeed(next);
+    }
   }
 
   void _toggleFit() {
@@ -1066,10 +1079,13 @@ class _PlayerScreenState extends State<PlayerScreen>
                     label: '${speed}x',
                     selected: _speed == speed,
                     onTap: () async {
-                      await _player.setRate(speed);
-                      setState(() => _speed = speed);
-                      _panelMessage = '播放速度 ${speed}x';
-                    },
+                    await _player.setRate(speed);
+                    setState(() => _speed = speed);
+                    _panelMessage = '播放速度 ${speed}x';
+                    if (widget.controller.settings.rememberPlaybackSpeed) {
+                      await widget.controller.setLastPlaybackSpeed(speed);
+                    }
+                  },
                   ),
                 )
                 .toList(),
