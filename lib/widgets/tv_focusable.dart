@@ -8,6 +8,28 @@ typedef FocusedWidgetBuilder = Widget Function(
   bool focused,
 );
 
+/// 焦点时统一的 elevation 阴影：深色投影 + 主题色光晕。
+///
+/// [elevation] 为 0 或负数时返回 null，即不显示焦点阴影。
+List<BoxShadow>? tvFocusShadow(Color glowColor, double elevation) {
+  if (elevation <= 0) return null;
+  return [
+    // 深色投影，制造“浮起来”的 elevation 效果。
+    BoxShadow(
+      color: Colors.black.withValues(alpha: 0.42),
+      blurRadius: elevation * 2,
+      spreadRadius: elevation * 0.05,
+      offset: Offset(0, elevation * 0.6),
+    ),
+    // 主题色光晕，让焦点在深色 TV 界面上更明显。
+    BoxShadow(
+      color: glowColor.withValues(alpha: 0.28),
+      blurRadius: elevation * 3,
+      spreadRadius: elevation * 0.12,
+    ),
+  ];
+}
+
 class TvFocusable extends StatefulWidget {
   const TvFocusable({
     super.key,
@@ -134,6 +156,7 @@ class TvButton extends StatelessWidget {
     this.enabled = true,
     this.compact = false,
     this.square = false,
+    this.focusElevation = 10,
   });
 
   final String label;
@@ -146,6 +169,9 @@ class TvButton extends StatelessWidget {
   final bool compact;
   final bool square;
 
+  /// 获得遥控器焦点时的阴影强度。设为 0 可关闭焦点阴影。
+  final double focusElevation;
+
   @override
   Widget build(BuildContext context) {
     return TvFocusable(
@@ -157,18 +183,13 @@ class TvButton extends StatelessWidget {
         final hasCustomColor = backgroundColor != null;
         final foreground = switch (style) {
           TvButtonStyle.filled =>
-            focused
-                ? const Color(0xFF221A0B)
-                : hasCustomColor
-                ? Colors.white
-                : LumaColors.onPrimary,
+            hasCustomColor ? Colors.white : LumaColors.onPrimary,
           TvButtonStyle.outline =>
             focused ? LumaColors.onPrimary : LumaColors.textOnSurface,
           TvButtonStyle.ghost => LumaColors.textOnSurface,
         };
         final background = switch (style) {
-          TvButtonStyle.filled =>
-            focused ? Colors.white : backgroundColor ?? LumaColors.primary,
+          TvButtonStyle.filled => backgroundColor ?? LumaColors.primary,
           TvButtonStyle.outline =>
             focused ? LumaColors.primary : Colors.transparent,
           TvButtonStyle.ghost =>
@@ -211,13 +232,10 @@ class TvButton extends StatelessWidget {
                 : BorderRadius.circular(100),
             border: Border.all(color: borderColor, width: 1.2),
             boxShadow: focused
-                ? [
-                    BoxShadow(
-                      color: LumaColors.primary.withValues(alpha: 0.18),
-                      blurRadius: 26,
-                      spreadRadius: 1,
-                    ),
-                  ]
+                ? tvFocusShadow(
+                    backgroundColor ?? LumaColors.primary,
+                    focusElevation,
+                  )
                 : null,
           ),
           child: square && label.isEmpty
@@ -266,6 +284,7 @@ class TvIconButton extends StatelessWidget {
     this.size = 44,
     this.iconSize = 20,
     this.selected = false,
+    this.focusElevation = 10,
   });
 
   final IconData icon;
@@ -275,6 +294,9 @@ class TvIconButton extends StatelessWidget {
   final double size;
   final double iconSize;
   final bool selected;
+
+  /// 获得遥控器焦点时的阴影强度。设为 0 可关闭焦点阴影。
+  final double focusElevation;
 
   @override
   Widget build(BuildContext context) {
@@ -303,6 +325,9 @@ class TvIconButton extends StatelessWidget {
                     ? LumaColors.primaryDeep
                     : LumaColors.line,
               ),
+              boxShadow: focused
+                  ? tvFocusShadow(LumaColors.primary, focusElevation)
+                  : null,
             ),
             child: Icon(
               icon,
@@ -405,11 +430,15 @@ class TvSwitchToggle extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.label,
+    this.focusElevation = 10,
   });
 
   final bool value;
   final ValueChanged<bool> onChanged;
   final String? label;
+
+  /// 获得遥控器焦点时的阴影强度。设为 0 可关闭焦点阴影。
+  final double focusElevation;
 
   @override
   Widget build(BuildContext context) {
@@ -431,6 +460,9 @@ class TvSwitchToggle extends StatelessWidget {
                   ? LumaColors.primary
                   : LumaColors.line,
               borderRadius: BorderRadius.circular(100),
+              boxShadow: focused
+                  ? tvFocusShadow(LumaColors.primary, focusElevation)
+                  : null,
             ),
             child: AnimatedAlign(
               duration: const Duration(milliseconds: 160),
@@ -459,6 +491,7 @@ class TvSwitch extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.description,
+    this.focusElevation = 10,
   });
 
   final String title;
@@ -466,59 +499,63 @@ class TvSwitch extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
 
+  /// 获得遥控器焦点时的阴影强度。设为 0 可关闭焦点阴影。
+  final double focusElevation;
+
   @override
   Widget build(BuildContext context) {
-    return TvFocusable(
-      onTap: () => onChanged(!value),
-      scale: 1.0,
-      builder: (context, focused) {
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          decoration: BoxDecoration(
-            color: focused
-                ? LumaColors.surfaceHigh.withValues(alpha: 0.55)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      if (description != null) ...[
-                        const SizedBox(height: 3),
-                        Text(
-                          description!,
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            color: LumaColors.textMuted,
-                          ),
-                        ),
-                      ],
-                    ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Row(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
+                  if (description != null) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      description!,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: LumaColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ],
               ),
-              const SizedBox(width: 20),
-              AnimatedContainer(
+            ),
+          ),
+          const SizedBox(width: 20),
+          // 只有开关本身可聚焦，与媒体来源区的按钮焦点保持一致。
+          TvFocusable(
+            onTap: () => onChanged(!value),
+            scale: 1.1,
+            builder: (context, focused) {
+              return AnimatedContainer(
                 duration: const Duration(milliseconds: 160),
                 width: 46,
                 height: 26,
                 padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
-                  color: value ? LumaColors.primary : LumaColors.line,
+                  color: focused
+                      ? LumaColors.primaryDeep
+                      : value
+                      ? LumaColors.primary
+                      : LumaColors.line,
                   borderRadius: BorderRadius.circular(100),
+                  boxShadow: focused
+                      ? tvFocusShadow(LumaColors.primary, focusElevation)
+                      : null,
                 ),
                 child: AnimatedAlign(
                   duration: const Duration(milliseconds: 160),
@@ -535,11 +572,11 @@ class TvSwitch extends StatelessWidget {
                     ),
                   ),
                 ),
-              ),
-            ],
+              );
+            },
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

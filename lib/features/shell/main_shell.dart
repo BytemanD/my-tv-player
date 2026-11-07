@@ -63,7 +63,6 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
               NavRail(
                 selectedIndex: _index,
                 onSelect: _select,
-                onLogoFocus: () => _select(0),
               ),
               Expanded(
                 child: HomeNavigation(

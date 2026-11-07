@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:luma_tv/core/formatters.dart';
 import 'package:luma_tv/data/scanner/nfo_parser.dart';
 import 'package:luma_tv/data/scanner/video_file_name_parser.dart';
+import 'package:luma_tv/data/storage_service.dart';
 
 void main() {
   group('video file name parser', () {
@@ -53,6 +56,18 @@ void main() {
       expect(parsed.isEpisode, isFalse);
       expect(parsed.title, 'The Truthers');
       expect(parsed.year, 2026);
+    });
+
+    test('lists only visible subdirectories in name order', () async {
+      final temp = await Directory.systemTemp.createTemp('luma_list_');
+      addTearDown(() => temp.delete(recursive: true));
+      await Directory('${temp.path}/beta').create();
+      await Directory('${temp.path}/Alpha').create();
+      await Directory('${temp.path}/.hidden').create();
+      await File('${temp.path}/movie.mp4').writeAsString('x');
+
+      final entries = await StorageService().listDirectories(temp.path);
+      expect(entries.map((e) => e.name), ['Alpha', 'beta']);
     });
 
     test('keeps a video named trailer but ignores marked trailer files', () {

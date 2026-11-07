@@ -28,12 +28,10 @@ class NavRail extends StatelessWidget {
     super.key,
     required this.selectedIndex,
     required this.onSelect,
-    this.onLogoFocus,
   });
 
   final int selectedIndex;
   final ValueChanged<int> onSelect;
-  final VoidCallback? onLogoFocus;
 
   @override
   Widget build(BuildContext context) {
@@ -48,17 +46,10 @@ class NavRail extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 24),
-          TvFocusable(
-            onTap: onLogoFocus,
-            scale: 1.05,
-            ensureVisible: false,
-            builder: (context, focused) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: LumaMark(
-                size: 34,
-                color: focused ? Colors.white : LumaColors.primary,
-              ),
-            ),
+          // Logo 只作装饰，不参与遥控器焦点遍历。
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: LumaMark(size: 34, color: LumaColors.primary),
           ),
           const SizedBox(height: 18),
           Container(width: 24, height: 1, color: LumaColors.lineSoft),
@@ -108,7 +99,7 @@ class _NavItem extends StatelessWidget {
             color: selected
                 ? LumaColors.primary
                 : focused
-                ? LumaColors.surfaceHigh
+                ? LumaColors.surfaceHigh.withValues(alpha: 0.5)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),
@@ -121,7 +112,7 @@ class _NavItem extends StatelessWidget {
                 color: selected
                     ? LumaColors.accent
                     : focused
-                    ? LumaColors.accentSoft
+                    ? LumaColors.accent
                     : LumaColors.textMutedOnSurface,
               ),
               const SizedBox(height: 6),

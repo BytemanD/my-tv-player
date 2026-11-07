@@ -186,24 +186,6 @@ class AppController extends ChangeNotifier {
 
   // --------------------------------------------------------------- sources
 
-  Future<bool> addSourceFromPicker() async {
-    final folder = await storage.pickFolder();
-    if (folder == null) return false;
-    if (folder.path == null || !folder.accessible) {
-      showNotice('无法解析该文件夹的本地路径，请改用“整块磁盘”添加', error: true);
-      return false;
-    }
-    final id = await repository.addSource(
-      path: folder.path!,
-      name: folder.name,
-      uri: folder.uri,
-    );
-    await refreshLibrary();
-    final source = sources.firstWhere((s) => s.id == id);
-    await scanSource(source);
-    return true;
-  }
-
   Future<bool> addSourceFromPath(String path) async {
     final trimmed = path.trim();
     if (trimmed.isEmpty) return false;
@@ -212,10 +194,9 @@ class AppController extends ChangeNotifier {
       showNotice('路径不存在或无法访问：$trimmed', error: true);
       return false;
     }
-    final name = p.basename(trimmed).isEmpty ? trimmed : p.basename(trimmed);
     final id = await repository.addSource(
       path: trimmed,
-      name: name,
+      name: _sourceNameForPath(trimmed),
       uri: null,
     );
     await refreshLibrary();
@@ -224,14 +205,19 @@ class AppController extends ChangeNotifier {
     return true;
   }
 
-  Future<void> addVolumeSource(StorageVolume volume) async {
-    final id = await repository.addSource(
-      path: volume.path,
-      name: volume.label.isEmpty ? volume.path : volume.label,
-    );
-    await refreshLibrary();
-    final source = sources.firstWhere((s) => s.id == id);
-    await scanSource(source);
+  String _sourceNameForPath(String path) {
+    if (path == '/storage/emulated/0' || path == '/sdcard') {
+      return '内部存储';
+    }
+    if (path == '/') return '系统根目录';
+    final base = p.basename(path);
+    if (base.isEmpty) return path;
+    // 外接磁盘通常挂载为 /storage/1234-ABCD 这类卷 ID。
+    if (RegExp(r'^[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}$').hasMatch(base)) {
+      return '外接存储 $base';
+    }
+    if (RegExp(r'^\d+$').hasMatch(base)) return '媒体目录';
+    return base;
   }
 
   Future<void> removeSource(LibrarySource source) async {
@@ -241,17 +227,22 @@ class AppController extends ChangeNotifier {
     showNotice('已移除「${source.name}」');
   }
 
-  Future<void> requestStorageAccess() async {
-    // 优先尝试普通运行时权限：系统弹标准对话框，用户点允许即可（像 iHub 那样）。
-    final status = await storage.requestStoragePermission();
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    await refreshAccessState();
-    if (hasStorageAccess) {
-      showNotice('文件访问权限已授予');
-      return;
+  /// [allFiles] 为 true 时跳过运行时权限，直接打开“所有文件访问”设置页。
+  /// 浏览外接磁盘/U 盘时需要 MANAGE_EXTERNAL_STORAGE。
+  Future<void> requestStorageAccess({bool allFiles = false}) async {
+    if (!allFiles) {
+      // 优先尝试普通运行时权限：系统弹标准对话框，用户点允许即可。
+      await storage.requestStoragePermission();
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      await refreshAccessState();
+      if (hasStorageAccess) {
+        showNotice('文件访问权限已授予');
+        return;
+      }
     }
 
-    // 普通权限被拒绝或设备不支持，fallback 到 MANAGE_EXTERNAL_STORAGE 设置页。
+    // 普通权限被拒绝、设备不支持，或需要浏览外接磁盘时，
+    // fallback 到 MANAGE_EXTERNAL_STORAGE 设置页。
     final manageStatus = await storage.requestAllFilesAccess();
     await Future<void>.delayed(const Duration(milliseconds: 400));
     await refreshAccessState();
@@ -268,14 +259,11 @@ class AppController extends ChangeNotifier {
             '已打开“所有文件访问”列表：找到 Luma 并允许，返回后会自动刷新',
         'opened_app_details' =>
             '已打开应用详情：请前往 权限 → 所有文件访问 开启，返回后会自动刷新',
-        'runtime_requested' => '请在弹出的对话框中允许存储权限',
         'already_granted' => '权限已授予',
         _ =>
             '此设备没有可用的权限设置页，请前往 设置 → 应用 → Luma → 权限，手动开启“所有文件访问”',
       },
-      error: status != 'opened_manage_app' &&
-          status != 'opened_manage_all' &&
-          manageStatus != 'opened_manage_app' &&
+      error: manageStatus != 'opened_manage_app' &&
           manageStatus != 'opened_manage_all',
     );
   }

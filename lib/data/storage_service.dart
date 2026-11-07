@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 
@@ -30,27 +29,11 @@ class StorageVolume {
   }
 }
 
-class PickedFolder {
-  const PickedFolder({
-    required this.path,
-    required this.uri,
-    required this.name,
-    required this.accessible,
-  });
+class StorageEntry {
+  const StorageEntry({required this.name, required this.path});
 
-  final String? path;
-  final String? uri;
   final String name;
-  final bool accessible;
-
-  factory PickedFolder.fromMap(Map<Object?, Object?> map) {
-    return PickedFolder(
-      path: map['path'] as String?,
-      uri: map['uri'] as String?,
-      name: map['name'] as String? ?? '媒体目录',
-      accessible: map['accessible'] as bool? ?? false,
-    );
-  }
+  final String path;
 }
 
 class StorageService {
@@ -106,33 +89,41 @@ class StorageService {
     }
   }
 
-  Future<PickedFolder?> pickFolder() async {
-    if (_isDesktop) {
-      final path = await getDirectoryPath(confirmButtonText: '选择此文件夹');
-      if (path == null) return null;
-      final name = p.basename(path);
-      return PickedFolder(
-        path: path,
-        uri: null,
-        name: name.isEmpty ? path : name,
-        accessible: true,
-      );
+  /// 列出目录下的子文件夹，供自建文件选择器使用。
+  ///
+  /// 隐藏以 `.` 开头的系统目录，按名称排序。权限不足时会抛出
+  /// [FileSystemException]，由界面提示用户授权。
+  Future<List<StorageEntry>> listDirectories(String path) async {
+    final dir = Directory(path);
+    final entities = await dir.list(followLinks: false).toList();
+    final dirs = <StorageEntry>[];
+    for (final entity in entities) {
+      if (entity is! Directory) continue;
+      final name = p.basename(entity.path);
+      if (name.startsWith('.')) continue;
+      dirs.add(StorageEntry(name: name, path: entity.path));
     }
-    try {
-      final value = await _channel.invokeMapMethod<Object?, Object?>(
-        'pickFolder',
-      );
-      if (value == null) return null;
-      return PickedFolder.fromMap(value);
-    } on PlatformException {
-      return null;
-    } on MissingPluginException {
-      return null;
-    }
+    dirs.sort(
+      (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+    );
+    return dirs;
   }
 
   Future<List<StorageVolume>> volumes() async {
-    if (_isDesktop) return const [];
+    if (_isDesktop) {
+      final root = Platform.isWindows
+          ? '${Platform.environment['SystemDrive'] ?? 'C:'}\\'
+          : '/';
+      return [
+        StorageVolume(
+          path: root,
+          label: Platform.isWindows ? '系统磁盘' : '系统根目录',
+          removable: false,
+          totalBytes: 0,
+          freeBytes: 0,
+        ),
+      ];
+    }
     try {
       final value =
           await _channel.invokeListMethod<Object?>('getStorageVolumes') ?? [];
