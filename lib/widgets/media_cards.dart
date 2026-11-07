@@ -581,22 +581,19 @@ class EpisodeRow extends StatelessWidget {
                         color: LumaColors.text,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      [
-                        if (media.overview != null &&
-                            media.overview!.isNotEmpty)
-                          media.overview!,
-                        if (media.runtime != null) formatRuntime(media.runtime),
-                      ].join('  ·  '),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
-                        height: 1.45,
-                        color: LumaColors.textMuted,
+                    if (media.runtime != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        formatRuntime(media.runtime),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.45,
+                          color: LumaColors.textMuted,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),

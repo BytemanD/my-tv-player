@@ -41,3 +41,7 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+// 注：AGP 9.1 的 Kotlin DSL 不支持通过 build.gradle.kts 自定义 APK 输出文件名。
+// 构建后的 APK 默认名为 app-debug.apk / app-release.apk，可手动重命名，
+// 例如：Luma_1.0.2_3_debug.apk

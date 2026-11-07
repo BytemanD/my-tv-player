@@ -278,6 +278,8 @@ class ScrapedMetadata {
     this.genres,
     this.runtime,
     this.releaseDate,
+    this.metadataSource,
+    this.metadataSourceId,
   });
 
   final String? title;
@@ -296,6 +298,10 @@ class ScrapedMetadata {
   final List<String>? genres;
   final int? runtime;
   final String? releaseDate;
+
+  /// 元数据来源（如 `tmdb`、`douban`），与媒体文件所属的 `source_id` 无关。
+  final String? metadataSource;
+  final String? metadataSourceId;
 
   Map<String, Object?> toDbUpdate() {
     final values = <String, Object?>{};
@@ -318,6 +324,8 @@ class ScrapedMetadata {
     put('rating', rating);
     put('runtime', runtime);
     put('release_date', releaseDate);
+    put('metadata_source', metadataSource);
+    put('metadata_source_id', metadataSourceId);
     if (genres != null && genres!.isNotEmpty) {
       values['genres'] = genres!.join('\u001f');
     }

@@ -57,6 +57,101 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
     });
   }
 
+  Future<void> _inputPath(BuildContext context) async {
+    final controller = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => Dialog(
+        insetPadding: const EdgeInsets.all(48),
+        backgroundColor: Colors.transparent,
+        child: Container(
+          width: 760,
+          padding: const EdgeInsets.fromLTRB(30, 26, 30, 26),
+          decoration: BoxDecoration(
+            color: LumaColors.surface,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: LumaColors.line),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '手动输入媒体目录',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: LumaColors.textOnSurface,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '例如：/storage/emulated/0/Movies 或 /mnt/usb_sda1/Media',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: LumaColors.textMutedOnSurface,
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: LumaColors.textOnSurface,
+                ),
+                decoration: InputDecoration(
+                  hintText: '媒体文件夹路径',
+                  hintStyle: TextStyle(
+                    color: LumaColors.textMutedOnSurface,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: LumaColors.line),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: LumaColors.line),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: LumaColors.primary),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  const Spacer(),
+                  TvButton(
+                    label: '取消',
+                    style: TvButtonStyle.ghost,
+                    compact: true,
+                    onTap: () => Navigator.of(context).pop(),
+                  ),
+                  const SizedBox(width: 10),
+                  TvButton(
+                    label: '确认',
+                    icon: Icons.check_rounded,
+                    compact: true,
+                    autofocus: true,
+                    onTap: () => Navigator.of(context).pop(controller.text.trim()),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (result == null || result.isEmpty) return;
+    final ok = await widget.controller.addSourceFromPath(result);
+    if (ok && context.mounted) {
+      Navigator.of(context).pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -142,6 +237,14 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
               autofocus: true,
               onTap: () =>
                   Navigator.of(context).pop(const _AddAction.pickFolder()),
+            ),
+            const SizedBox(height: 12),
+            TvButton(
+              label: '手动输入路径…',
+              icon: Icons.edit_rounded,
+              style: TvButtonStyle.outline,
+              compact: true,
+              onTap: () => _inputPath(context),
             ),
             const SizedBox(height: 22),
             Text(

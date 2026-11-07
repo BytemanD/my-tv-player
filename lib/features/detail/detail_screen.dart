@@ -91,46 +91,48 @@ class _DetailScreenState extends State<DetailScreen> {
                     },
                     watched: watched,
                     onScrape: controller.hasTmdbKey
-                        ? () => controller.scrapeAll()
+                        ? () => controller.scrapeMedia(lead)
                         : null,
                   ),
                   const SizedBox(height: 8),
                   if (isSeries) ...[
                     Padding(
                       padding: const EdgeInsets.fromLTRB(56, 18, 56, 0),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            '剧集',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w600,
-                              color: LumaColors.text,
-                            ),
+                          Row(
+                            children: [
+                              Text(
+                                '剧集',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w600,
+                                  color: LumaColors.text,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                '共 ${entry.series!.episodeCount} 集',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: LumaColors.textMuted,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-                          Text(
-                            '共 ${entry.series!.episodeCount} 集',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              color: LumaColors.textMuted,
-                            ),
-                          ),
-                          const SizedBox(width: 24),
-                          Expanded(
-                            child: Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: [
-                                for (final season in seasons)
-                                  TvChip(
-                                    label: '第 $season 季',
-                                    selected: activeSeason == season,
-                                    onTap: () =>
-                                        setState(() => _season = season),
-                                  ),
-                              ],
-                            ),
+                          const SizedBox(height: 14),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              for (final season in seasons)
+                                TvChip(
+                                  label: '第 $season 季',
+                                  selected: activeSeason == season,
+                                  onTap: () => setState(() => _season = season),
+                                ),
+                            ],
                           ),
                         ],
                       ),
@@ -314,33 +316,17 @@ class _Hero extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            if (entry.scrapeState == ScrapeState.pending ||
-                                entry.scrapeState == ScrapeState.failed)
-                              _StatePill(
-                                text: entry.scrapeState == ScrapeState.failed
-                                    ? '刮削未完成'
-                                    : '等待刮削',
-                                warning: true,
-                              )
-                            else
-                              _StatePill(
-                                text: isSeries ? '剧集' : '电影',
-                                warning: false,
+                        if (entry.tmdbId != null)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Text(
+                              'TMDB ${entry.tmdbId}',
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                color: LumaColors.textMuted,
                               ),
-                            if (entry.tmdbId != null) ...[
-                              const SizedBox(width: 8),
-                              Text(
-                                'TMDB ${entry.tmdbId}',
-                                style: TextStyle(
-                                  fontSize: 10.5,
-                                  color: LumaColors.textMuted,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
+                            ),
+                          ),
                         const SizedBox(height: 14),
                         Text(
                           entry.title,
@@ -354,6 +340,15 @@ class _Hero extends StatelessWidget {
                             color: Colors.white,
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        if (entry.scrapeState == ScrapeState.pending ||
+                            entry.scrapeState == ScrapeState.failed)
+                          _StatePill(
+                            text: entry.scrapeState == ScrapeState.failed
+                                ? '同步未完成'
+                                : '等待同步',
+                            warning: true,
+                          ),
                         const SizedBox(height: 14),
                         Wrap(
                           crossAxisAlignment: WrapCrossAlignment.center,
@@ -424,7 +419,7 @@ class _Hero extends StatelessWidget {
                           child: Text(
                             entry.overview?.isNotEmpty == true
                                 ? entry.overview!
-                                : '暂无简介。配置 TMDB API Key 后重新刮削即可补全。',
+                                : '暂无简介。',
                             maxLines: 4,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -562,6 +557,8 @@ class _FileInfo extends StatelessWidget {
           const SizedBox(height: 14),
           _InfoRow(label: '文件', value: media.fileName),
           _InfoRow(label: '大小', value: formatFileSize(media.size)),
+          if (media.runtime != null && media.runtime! > 0)
+            _InfoRow(label: '时长', value: formatRuntime(media.runtime)),
           _InfoRow(label: '路径', value: media.path),
           if (media.nfoPath != null)
             _InfoRow(label: 'NFO', value: media.nfoPath!),

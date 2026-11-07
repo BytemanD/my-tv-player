@@ -46,6 +46,15 @@ void main() {
       expect(parsed.year, 1999);
     });
 
+    test('strips spaced codec and audio tags from a release name', () {
+      final parsed = VideoFileNameParser.parse(
+        '/media/movies/The.Truthers.2026.1080p.NF.WEB-DL.H.264.DDP5.1.Atmos-PandaQT.mkv',
+      );
+      expect(parsed.isEpisode, isFalse);
+      expect(parsed.title, 'The Truthers');
+      expect(parsed.year, 2026);
+    });
+
     test('keeps a video named trailer but ignores marked trailer files', () {
       expect(
         VideoFileNameParser.shouldIgnore('trailer.mp4', 3 * 1024 * 1024),

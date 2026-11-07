@@ -80,7 +80,9 @@ class VideoFileNameParser {
   }
 
   static const _releaseTag =
-      r'(2160p|1080p|1080i|720p|576p|480p|4k|uhd|bluray|blu-ray|bdrip|brrip|webrip|web-dl|webdl|hdtv|dvdrip|dvdscr|hdrip|remux|x264|x265|h\.?264|h\.?265|hevc|avc|av1|10bit|8bit|hdr10\+?|hdr|dv|dolby\s*vision|atmos|truehd|dts(?:-hd)?(?:\s*ma)?|ddp?\s*5\.1|dd\+?\s*7\.1|aac|ac3|eac3|flac|opus|proper|repack|remastered|extended|unrated|imax|multi|dual\s*audio|dubbed|subbed|complete|nf|internal)';
+      // 点分隔的文件名会先被转成空格（如 H.264 -> H 264、DDP5.1 -> DDP5 1），
+      // 因此编解码/音轨标记要同时兼容点、空格和紧邻写法。
+      r'(2160p|1080p|1080i|720p|576p|480p|4k|uhd|bluray|blu-ray|bdrip|brrip|webrip|web-dl|webdl|hdtv|dvdrip|dvdscr|hdrip|remux|x\.?\s*264|x\.?\s*265|h\.?\s*264|h\.?\s*265|hevc|avc|av1|10bit|8bit|hdr10\+?|hdr|dv|dolby\s*vision|atmos|truehd|dts(?:-hd)?(?:\s*ma)?|ddp?\s*2\s*[.\s]\s*0|ddp?\s*5\s*[.\s]\s*1|dd\+?\s*7\s*[.\s]\s*1|aac\s*2\s*[.\s]\s*0|ac3\s*5\s*[.\s]\s*1|eac3\s*5\s*[.\s]\s*1|aac|ac3|eac3|flac|opus|proper|repack|remastered|extended|unrated|imax|multi|dual\s*audio|dubbed|subbed|complete|nf|internal)';
 
   static final _releaseTagRegex = RegExp(
     '\\b$_releaseTag\\b',

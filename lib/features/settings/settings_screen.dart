@@ -140,8 +140,15 @@ class SettingsScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       _KeyRow(
+                        label: 'TMDB API Key',
                         configured: controller.hasTmdbKey,
-                        onTap: () => _editKey(context, controller),
+                        description: '主刮削源，未配置时无法获取海报与元数据',
+                      ),
+                      const _Hairline(),
+                      _KeyRow(
+                        label: '豆瓣 API Key（备用）',
+                        configured: controller.hasDoubanKey,
+                        description: 'TMDB 找不到时自动尝试豆瓣',
                       ),
                       const _Hairline(),
                       Padding(
@@ -451,14 +458,6 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _editKey(BuildContext context, AppController controller) async {
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (_) => _TmdbKeyDialog(controller: controller),
-    );
-  }
-
   Future<void> _removeSource(
     BuildContext context,
     AppController controller,
@@ -582,10 +581,15 @@ class _Hairline extends StatelessWidget {
 }
 
 class _KeyRow extends StatelessWidget {
-  const _KeyRow({required this.configured, required this.onTap});
+  const _KeyRow({
+    required this.label,
+    required this.configured,
+    required this.description,
+  });
 
+  final String label;
   final bool configured;
-  final VoidCallback onTap;
+  final String description;
 
   @override
   Widget build(BuildContext context) {
@@ -618,7 +622,7 @@ class _KeyRow extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'TMDB API Key',
+                      label,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
@@ -652,9 +656,7 @@ class _KeyRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  configured
-                      ? '用于搜索影片、剧集、海报与简介'
-                      : '在 themoviedb.org 免费申请后填入，才能自动刮削',
+                  description,
                   style: TextStyle(
                     fontSize: 12.5,
                     color: LumaColors.textMutedOnSurface,
@@ -662,13 +664,6 @@ class _KeyRow extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          const SizedBox(width: 18),
-          TvButton(
-            label: configured ? '更换' : '配置',
-            icon: Icons.tune_rounded,
-            compact: true,
-            onTap: onTap,
           ),
         ],
       ),
@@ -859,182 +854,6 @@ class _ActivityRow extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _TmdbKeyDialog extends StatefulWidget {
-  const _TmdbKeyDialog({required this.controller});
-
-  final AppController controller;
-
-  @override
-  State<_TmdbKeyDialog> createState() => _TmdbKeyDialogState();
-}
-
-class _TmdbKeyDialogState extends State<_TmdbKeyDialog> {
-  late final TextEditingController _text = TextEditingController(
-    text: widget.controller.settings.tmdbApiKey,
-  );
-  bool _busy = false;
-  bool _obscure = true;
-  String? _result;
-  bool _resultIsError = false;
-
-  @override
-  void dispose() {
-    _text.dispose();
-    super.dispose();
-  }
-
-  Future<void> _test() async {
-    if (_busy) return;
-    setState(() {
-      _busy = true;
-      _result = null;
-    });
-    final result = await widget.controller.testTmdbConnection(_text.text);
-    if (!mounted) return;
-    setState(() {
-      _busy = false;
-      _result = result;
-      _resultIsError = !result.contains('成功');
-    });
-  }
-
-  Future<void> _save() async {
-    final key = _text.text.trim();
-    await widget.controller.setTmdbApiKey(key);
-    if (!mounted) return;
-    Navigator.of(context).pop();
-    widget.controller.showNotice(
-      key.isEmpty ? '已清除 TMDB API Key' : 'TMDB API Key 已保存',
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      insetPadding: const EdgeInsets.all(48),
-      backgroundColor: Colors.transparent,
-      child: Container(
-        width: 760,
-        padding: const EdgeInsets.fromLTRB(30, 28, 30, 24),
-        decoration: BoxDecoration(
-          color: LumaColors.surface,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: LumaColors.line),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.6),
-              blurRadius: 60,
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'TMDB API Key',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: LumaColors.textOnSurface,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '在 themoviedb.org 注册账号，进入 Settings → API 申请免费 Key。Key 仅保存在本机。',
-              style: TextStyle(
-                fontSize: 13,
-                height: 1.6,
-                color: LumaColors.textMutedOnSurface,
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _text,
-              autofocus: true,
-              obscureText: _obscure,
-              textInputAction: TextInputAction.done,
-              onChanged: (_) => setState(() {}),
-              onSubmitted: (_) => _save(),
-              style: TextStyle(fontSize: 15, color: LumaColors.textOnSurface),
-              decoration: InputDecoration(
-                hintText: '粘贴 API Key（v3 auth）',
-                prefixIcon: const Icon(Icons.vpn_key_outlined, size: 19),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscure
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
-                    size: 19,
-                  ),
-                  color: LumaColors.textMutedOnSurface,
-                  onPressed: () => setState(() => _obscure = !_obscure),
-                ),
-              ),
-            ),
-            if (_result != null) ...[
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Icon(
-                    _resultIsError
-                        ? Icons.error_outline_rounded
-                        : Icons.check_circle_outline,
-                    size: 17,
-                    color: _resultIsError
-                        ? LumaColors.danger
-                        : LumaColors.success,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _result!,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: _resultIsError
-                            ? LumaColors.danger
-                            : LumaColors.success,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                TvButton(
-                  label: _busy ? '测试中…' : '测试连接',
-                  icon: Icons.wifi_tethering_rounded,
-                  style: TvButtonStyle.outline,
-                  compact: true,
-                  enabled: !_busy && _text.text.trim().isNotEmpty,
-                  onTap: _test,
-                ),
-                const Spacer(),
-                TvButton(
-                  label: '取消',
-                  style: TvButtonStyle.ghost,
-                  compact: true,
-                  onTap: () => Navigator.of(context).pop(),
-                ),
-                const SizedBox(width: 10),
-                TvButton(
-                  label: '保存',
-                  icon: Icons.check_rounded,
-                  compact: true,
-                  enabled: !_busy,
-                  onTap: _save,
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

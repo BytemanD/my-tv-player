@@ -1,16 +1,19 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path/path.dart' as p;
 
+import '../core/luma_log.dart';
 import '../data/app_database.dart';
 import '../data/library_source.dart';
 import '../data/media_repository.dart';
 import '../data/models.dart';
 import '../data/scanner/media_scanner.dart';
 import '../data/scraper/metadata_scraper.dart';
-import '../data/scraper/tmdb_client.dart';
 import '../core/theme.dart';
 import '../data/settings_service.dart';
 import '../data/storage_service.dart';
@@ -29,6 +32,7 @@ class AppController extends ChangeNotifier {
   final SettingsService settings;
   final StorageService storage;
   final MediaScanner scanner;
+  final Logger _log = LumaLog.of('Luma.App');
 
   bool initializing = true;
   String? fatalError;
@@ -67,6 +71,8 @@ class AppController extends ChangeNotifier {
   String appVersion = '';
 
   bool get hasTmdbKey => settings.hasTmdbKey;
+
+  bool get hasDoubanKey => settings.hasDoubanKey;
   bool get libraryIsEmpty => entries.isEmpty;
   bool get isBusy => scanning || scraping;
 
@@ -191,6 +197,26 @@ class AppController extends ChangeNotifier {
       path: folder.path!,
       name: folder.name,
       uri: folder.uri,
+    );
+    await refreshLibrary();
+    final source = sources.firstWhere((s) => s.id == id);
+    await scanSource(source);
+    return true;
+  }
+
+  Future<bool> addSourceFromPath(String path) async {
+    final trimmed = path.trim();
+    if (trimmed.isEmpty) return false;
+    final dir = Directory(trimmed);
+    if (!await dir.exists()) {
+      showNotice('路径不存在或无法访问：$trimmed', error: true);
+      return false;
+    }
+    final name = p.basename(trimmed).isEmpty ? trimmed : p.basename(trimmed);
+    final id = await repository.addSource(
+      path: trimmed,
+      name: name,
+      uri: null,
     );
     await refreshLibrary();
     final source = sources.firstWhere((s) => s.id == id);
@@ -406,6 +432,7 @@ class AppController extends ChangeNotifier {
       final report = await scraper.run(
         apiKey: settings.tmdbApiKey,
         language: settings.language,
+        doubanApiKey: settings.doubanApiKey,
         onProgress: (progress) {
           scrapeProgress = progress;
           notifyListeners();
@@ -437,35 +464,71 @@ class AppController extends ChangeNotifier {
     }
   }
 
+  Future<void> scrapeMedia(MediaItem media) async {
+    if (scraping) return;
+    if (!settings.hasTmdbKey) {
+      showNotice('请先在设置中配置 TMDB API Key', error: true);
+      return;
+    }
+
+    scraping = true;
+    scrapeProgress = ScrapeProgress(
+      running: true,
+      done: 0,
+      total: 1,
+      current: '准备刮削…',
+      succeeded: 0,
+      failed: 0,
+    );
+    notifyListeners();
+
+    _log.info('单项开始：${media.title} (isMovie=${media.isMovie}, id=${media.id})');
+
+    // 重置刮削状态，当作没有刮削过，重新开始
+    if (media.id != null) {
+      await repository.resetScrapeState(media.id!);
+      if (media.isEpisode) {
+        await repository.resetSeriesScrapeState(
+          media.seriesKey ?? 'media:${media.id}',
+        );
+      }
+    }
+
+    final scraper = MetadataScraper(repository);
+    _activeScraper = scraper;
+    try {
+      final ok = await scraper.scrapeSingle(
+        media,
+        settings.tmdbApiKey,
+        settings.language.code,
+        forceRescan: true,
+        doubanApiKey: settings.doubanApiKey,
+      );
+      await refreshLibrary();
+      if (ok) {
+        showNotice('「${media.title}」刮削完成');
+        _log.info('单项完成：${media.title}');
+      } else {
+        showNotice('「${media.title}」未找到匹配信息', error: true);
+        _log.info('单项失败：${media.title} - 未找到匹配信息');
+      }
+    } catch (error) {
+      showNotice('刮削失败：$error', error: true);
+      _log.info('单项异常：${media.title} - $error');
+    } finally {
+      _activeScraper = null;
+      scraping = false;
+      scrapeProgress = ScrapeProgress.idle();
+      notifyListeners();
+    }
+  }
+
   void cancelScrape() {
     _activeScraper?.cancel();
     showNotice('正在停止刮削…');
   }
 
-  Future<String> testTmdbConnection(String apiKey) async {
-    if (apiKey.trim().isEmpty) return '请先填写 API Key';
-    final client = TmdbClient(
-      apiKey: apiKey.trim(),
-      language: settings.language.code,
-    );
-    try {
-      await client.ping();
-      return '连接成功，API Key 有效';
-    } on TmdbException catch (error) {
-      return error.message;
-    } catch (error) {
-      return '连接失败：$error';
-    } finally {
-      client.dispose();
-    }
-  }
-
   // --------------------------------------------------------------- settings
-
-  Future<void> setTmdbApiKey(String value) async {
-    await settings.setTmdbApiKey(value);
-    notifyListeners();
-  }
 
   Future<void> setLanguage(TmdbLanguage language) async {
     await settings.setLanguage(language);

@@ -25,9 +25,10 @@ class AppDatabase {
       final db = await _factory.openDatabase(
         dbPath,
         options: OpenDatabaseOptions(
-          version: 1,
+          version: 2,
           onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
           onCreate: _create,
+          onUpgrade: _upgrade,
         ),
       );
       _db = db;
@@ -80,6 +81,8 @@ class AppDatabase {
         genres TEXT,
         runtime INTEGER,
         release_date TEXT,
+        metadata_source TEXT,
+        metadata_source_id TEXT,
         nfo_path TEXT,
         scrape_state TEXT NOT NULL DEFAULT 'pending',
         scrape_error TEXT,
@@ -103,6 +106,13 @@ class AppDatabase {
     batch.execute('CREATE INDEX idx_media_added_at ON media (added_at)');
     batch.execute('CREATE INDEX idx_media_scrape ON media (scrape_state)');
     await batch.commit(noResult: true);
+  }
+
+  Future<void> _upgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE media ADD COLUMN metadata_source TEXT');
+      await db.execute('ALTER TABLE media ADD COLUMN metadata_source_id TEXT');
+    }
   }
 
   Future<void> close() async {

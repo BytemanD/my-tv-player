@@ -256,6 +256,8 @@ class MediaRepository {
     put('tmdb_id', metadata.tmdbId);
     put('imdb_id', metadata.imdbId);
     put('series_key', metadata.seriesKey);
+    put('metadata_source', metadata.metadataSource);
+    put('metadata_source_id', metadata.metadataSourceId);
     if (metadata.genres != null && metadata.genres!.isNotEmpty) {
       values['genres'] = metadata.genres!.join('\u001f');
     }
@@ -309,6 +311,37 @@ class MediaRepository {
       {
         'scrape_state': state.dbValue,
         'scrape_error': error,
+        'updated_at': _now(),
+      },
+      where: 'series_key = ?',
+      whereArgs: [seriesKey],
+    );
+  }
+
+  /// 重置刮削状态，用于“重新刮削”：当作没有刮削过，重新开始。
+  Future<void> resetScrapeState(int mediaId) async {
+    final db = await _db;
+    await db.update(
+      'media',
+      {
+        'scrape_state': ScrapeState.pending.dbValue,
+        'tmdb_id': null,
+        'scrape_error': null,
+        'updated_at': _now(),
+      },
+      where: 'id = ?',
+      whereArgs: [mediaId],
+    );
+  }
+
+  Future<void> resetSeriesScrapeState(String seriesKey) async {
+    final db = await _db;
+    await db.update(
+      'media',
+      {
+        'scrape_state': ScrapeState.pending.dbValue,
+        'tmdb_id': null,
+        'scrape_error': null,
         'updated_at': _now(),
       },
       where: 'series_key = ?',

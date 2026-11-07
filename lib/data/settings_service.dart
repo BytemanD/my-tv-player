@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum TmdbLanguage {
@@ -22,7 +23,6 @@ enum TmdbLanguage {
 class SettingsService extends ChangeNotifier {
   SettingsService._(this._prefs);
 
-  static const _kApiKey = 'tmdb_api_key';
   static const _kLanguage = 'tmdb_language';
   static const _kOnboarding = 'onboarding_complete';
   static const _kAutoScrape = 'auto_scrape';
@@ -44,8 +44,60 @@ class SettingsService extends ChangeNotifier {
     return SettingsService._(prefs);
   }
 
-  String get tmdbApiKey => _prefs.getString(_kApiKey)?.trim() ?? '';
+  /// TMDB API Key 仅来自环境变量（.env 文件或 --dart-define），不再存入数据库。
+  /// 优先级：
+  /// 1. .env 文件（运行时加载，无需重构建即可修改）
+  /// 2. 构建时环境变量（--dart-define=TMDB_API_KEY=xxx）
+  static const String _tmdbApiKeyFromEnv = String.fromEnvironment(
+    'TMDB_API_KEY',
+    defaultValue: '',
+  );
+
+  /// 豆瓣 API Key 仅来自环境变量（.env 文件或 --dart-define）。
+  static const String _doubanApiKeyFromEnv = String.fromEnvironment(
+    'DOUBAN_API_KEY',
+    defaultValue: '',
+  );
+
+  /// TMDB API Key。仅从环境变量读取，不再读取/写入 shared_preferences。
+  String get tmdbApiKey {
+    // 优先 .env 文件
+    final envFileKey = _dotenvGet('TMDB_API_KEY')?.trim();
+    if (envFileKey != null && envFileKey.isNotEmpty) return envFileKey;
+
+    // 次优先构建时环境变量
+    if (_tmdbApiKeyFromEnv.isNotEmpty) return _tmdbApiKeyFromEnv;
+
+    return '';
+  }
+
+  /// 豆瓣 API Key。仅从环境变量读取。
+  String get doubanApiKey {
+    final envFileKey = _dotenvGet('DOUBAN_API_KEY')?.trim();
+    if (envFileKey != null && envFileKey.isNotEmpty) return envFileKey;
+    if (_doubanApiKeyFromEnv.isNotEmpty) return _doubanApiKeyFromEnv;
+    return '';
+  }
+
+  /// 是否通过环境变量注入了豆瓣 API Key（.env 或 dart-define）。
+  bool get doubanApiKeyFromEnv {
+    return _doubanApiKeyFromEnv.isNotEmpty ||
+        (_dotenvGet('DOUBAN_API_KEY')?.isNotEmpty ?? false);
+  }
+
+  /// 安全读取 .env 文件中的键值，未初始化时返回 null（测试环境等）。
+  String? _dotenvGet(String key) {
+    try {
+      return dotenv.env[key];
+    } on NotInitializedError {
+      return null;
+    }
+  }
+
   bool get hasTmdbKey => tmdbApiKey.isNotEmpty;
+
+  /// 豆瓣作为备用源，未配置时刮削仍可正常进行。
+  bool get hasDoubanKey => doubanApiKey.isNotEmpty;
 
   TmdbLanguage get language =>
       TmdbLanguage.fromCode(_prefs.getString(_kLanguage));
@@ -81,11 +133,6 @@ class SettingsService extends ChangeNotifier {
   /// Global light/dark mode, shared across all themes. Defaults to dark.
   String get themeMode =>
       _prefs.getString(_kThemeMode) == 'light' ? 'light' : 'dark';
-
-  Future<void> setTmdbApiKey(String value) async {
-    await _prefs.setString(_kApiKey, value.trim());
-    notifyListeners();
-  }
 
   Future<void> setLanguage(TmdbLanguage value) async {
     await _prefs.setString(_kLanguage, value.code);
