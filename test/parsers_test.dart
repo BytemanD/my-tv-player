@@ -33,6 +33,31 @@ void main() {
       expect(parsed.episode, 8);
     });
 
+    test('uses the show folder when the name starts with SxxEyy', () {
+      final first = VideoFileNameParser.parse(
+        '/media/剧集/死亡幻象/s01e01.1080p.HD中字[最新电影www.dyg7.com].mp4',
+      );
+      final second = VideoFileNameParser.parse(
+        '/media/剧集/死亡幻象/s01e02.1080p.HD中字[最新电影www.dyg7.com].mp4',
+      );
+
+      expect(first.isEpisode, isTrue);
+      expect(first.season, 1);
+      expect(first.episode, 1);
+      expect(first.title, '死亡幻象');
+      expect(second.episode, 2);
+      expect(second.title, '死亡幻象');
+      expect(first.seriesKey, second.seriesKey);
+    });
+
+    test('skips a season folder when deriving the show name', () {
+      final parsed = VideoFileNameParser.parse(
+        '/media/剧集/三体/Season 02/s02e03.1080p.mp4',
+      );
+      expect(parsed.isEpisode, isTrue);
+      expect(parsed.title, '三体');
+    });
+
     test('parses anime style numbering', () {
       final parsed = VideoFileNameParser.parse(
         '/media/anime/Frieren - 12 [1080p].mkv',

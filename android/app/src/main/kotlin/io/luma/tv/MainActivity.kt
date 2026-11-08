@@ -288,9 +288,19 @@ class MainActivity : FlutterActivity() {
         val result = mutableListOf<Map<String, Any>>()
 
         for (volume in manager.storageVolumes) {
-            if (volume.state != Environment.MEDIA_MOUNTED) continue
+            val state = volume.state
+            if (state != Environment.MEDIA_MOUNTED &&
+                state != Environment.MEDIA_MOUNTED_READ_ONLY
+            ) {
+                continue
+            }
             val directory = volumeDirectory(volume) ?: continue
-            if (!directory.exists() || !directory.canRead()) continue
+            if (!directory.exists()) continue
+            // 注意：不要在这里用 directory.canRead() 过滤。
+            // Android 11+ 未授予“所有文件访问权限”时，外接磁盘的
+            // /storage/XXXX-XXXX 目录 canRead() 为 false，但磁盘本身
+            // 是存在且可挂载的。过滤掉会导致“添加目录”里看不到 U 盘。
+            // 读取失败交给 Dart 侧提示用户去授权。
             val path = directory.absolutePath
             if (!seen.add(path)) continue
             val stats = try {
@@ -309,6 +319,33 @@ class MainActivity : FlutterActivity() {
                     "freeBytes" to free,
                 ),
             )
+        }
+
+        // 部分 Android TV 固件的 StorageManager 不会列出 U 盘，
+        // 这里补扫 /storage 下的挂载点，避免“添加目录”里看不到外接磁盘。
+        val storageRoot = File("/storage")
+        if (storageRoot.isDirectory) {
+            storageRoot.listFiles()?.forEach { dir ->
+                val name = dir.name
+                if (!dir.isDirectory || !dir.exists()) return@forEach
+                if (name == "emulated" || name == "self") return@forEach
+                val path = dir.absolutePath
+                if (!seen.add(path)) return@forEach
+                val stats = try {
+                    StatFs(path)
+                } catch (_: Exception) {
+                    null
+                }
+                result.add(
+                    mapOf(
+                        "path" to path,
+                        "label" to name,
+                        "removable" to true,
+                        "totalBytes" to (stats?.let { it.blockCountLong * it.blockSizeLong } ?: 0L),
+                        "freeBytes" to (stats?.let { it.availableBlocksLong * it.blockSizeLong } ?: 0L),
+                    ),
+                )
+            }
         }
 
         // Older firmware occasionally reports no volumes. Fall back to the

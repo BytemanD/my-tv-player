@@ -109,13 +109,23 @@ class StorageService {
 
   Future<List<StorageVolume>> volumes() async {
     if (_isDesktop) {
-      final root = Platform.isWindows
-          ? '${Platform.environment['SystemDrive'] ?? 'C:'}\\'
-          : '/';
+      if (Platform.isWindows) {
+        final root = '${Platform.environment['SystemDrive'] ?? 'C:'}\\';
+        return [
+          StorageVolume(
+            path: root,
+            label: '系统磁盘',
+            removable: false,
+            totalBytes: 0,
+            freeBytes: 0,
+          ),
+        ];
+      }
+      if (Platform.isLinux) return _linuxVolumes();
       return [
         StorageVolume(
-          path: root,
-          label: Platform.isWindows ? '系统磁盘' : '系统根目录',
+          path: '/',
+          label: '系统根目录',
           removable: false,
           totalBytes: 0,
           freeBytes: 0,
@@ -135,6 +145,129 @@ class StorageService {
     } on MissingPluginException {
       return const [];
     }
+  }
+
+  /// 枚举 Linux 上已挂载的磁盘。
+  ///
+  /// 除了根分区，还会解析 `/proc/mounts` 里的块设备，并扫描
+  /// `/media`、`/run/media`、`/mnt` 下的挂载目录，确保 U 盘能显示。
+  Future<List<StorageVolume>> _linuxVolumes() async {
+    final volumes = <StorageVolume>[];
+    final seen = <String>{};
+
+    Future<void> add(String path, String label, bool removable) async {
+      if (path.isEmpty || !seen.add(path)) return;
+      final stats = await _diskUsage(path);
+      volumes.add(
+        StorageVolume(
+          path: path,
+          label: label.isEmpty ? path : label,
+          removable: removable,
+          totalBytes: stats.$1,
+          freeBytes: stats.$2,
+        ),
+      );
+    }
+
+    await add('/', '系统根目录', false);
+
+    final mountPoints = <String>{};
+    final devices = <String>{};
+    try {
+      final lines = await File('/proc/mounts').readAsLines();
+      for (final line in lines) {
+        final parts = line.split(RegExp(r'\s+'));
+        if (parts.length < 2) continue;
+        final device = parts[0];
+        final mount = parts[1].replaceAll(r'\040', ' ');
+        mountPoints.add(mount);
+        if (!device.startsWith('/dev/')) continue;
+        if (mount == '/') {
+          devices.add(device);
+          continue;
+        }
+        if (mount.startsWith('/boot') ||
+            mount.startsWith('/snap') ||
+            mount.startsWith('/var/snap')) {
+          continue;
+        }
+        // 同一个块设备挂载多次（如 / 和 /home）只显示一次。
+        if (!devices.add(device)) continue;
+        var label = p.basename(mount);
+        if (label.isEmpty || label == '/') label = p.basename(device);
+        await add(mount, label, await _isRemovableDevice(device));
+      }
+    } catch (_) {
+      // /proc/mounts 不可读时忽略，仍可扫描常见挂载目录。
+    }
+
+    // 桌面环境（udisks/gvfs）常把 U 盘挂在 /media/<用户>/<卷标>。
+    // 若条目本身是挂载点就直接加，否则下钻一层；/mnt 直接加。
+    for (final base in const ['/media', '/run/media', '/mnt']) {
+      final dir = Directory(base);
+      if (!await dir.exists()) continue;
+      try {
+        await for (final entity in dir.list(followLinks: false)) {
+          if (entity is! Directory) continue;
+          final name = p.basename(entity.path);
+          if (base != '/mnt' && !mountPoints.contains(entity.path)) {
+            final nested = await entity
+                .list(followLinks: false)
+                .where((e) => e is Directory)
+                .toList();
+            if (nested.isNotEmpty) {
+              for (final child in nested) {
+                await add(child.path, p.basename(child.path), true);
+              }
+              continue;
+            }
+          }
+          await add(entity.path, name, true);
+        }
+      } catch (_) {
+        // 无权限的挂载目录忽略。
+      }
+    }
+
+    if (volumes.length > 1) {
+      volumes.sort((a, b) {
+        if (a.removable != b.removable) return a.removable ? -1 : 1;
+        return a.path.compareTo(b.path);
+      });
+    }
+    return volumes;
+  }
+
+  /// 用 `df -P -k` 读取总容量和可用容量（字节）。
+  Future<(int, int)> _diskUsage(String path) async {
+    try {
+      final result = await Process.run('df', ['-P', '-k', path]);
+      if (result.exitCode != 0) return (0, 0);
+      final lines = (result.stdout as String).trim().split('\n');
+      if (lines.length < 2) return (0, 0);
+      final cols = lines.last.trim().split(RegExp(r'\s+'));
+      if (cols.length < 4) return (0, 0);
+      final totalKb = int.tryParse(cols[1]) ?? 0;
+      final freeKb = int.tryParse(cols[3]) ?? 0;
+      return (totalKb * 1024, freeKb * 1024);
+    } catch (_) {
+      return (0, 0);
+    }
+  }
+
+  Future<bool> _isRemovableDevice(String device) async {
+    try {
+      final name = p.basename(device);
+      // /dev/sdb1 -> sdb，/dev/nvme0n1p2 -> nvme0n1
+      final base = name.replaceFirst(RegExp(r'p?\d+$'), '');
+      final flag = File('/sys/block/$base/removable');
+      if (await flag.exists()) {
+        return (await flag.readAsString()).trim() == '1';
+      }
+    } catch (_) {
+      // Ignore.
+    }
+    return false;
   }
 
   Future<void> openAppSettings() async {

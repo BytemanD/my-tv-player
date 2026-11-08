@@ -189,7 +189,12 @@ class TvButton extends StatelessWidget {
           TvButtonStyle.ghost => LumaColors.textOnSurface,
         };
         final background = switch (style) {
-          TvButtonStyle.filled => backgroundColor ?? LumaColors.primary,
+          TvButtonStyle.filled =>
+            focused
+                ? (backgroundColor ?? LumaColors.primary).withValues(alpha: 1)
+                : (backgroundColor ?? LumaColors.primary).withValues(
+                    alpha: 0.6,
+                  ),
           TvButtonStyle.outline =>
             focused ? LumaColors.primary : Colors.transparent,
           TvButtonStyle.ghost =>
@@ -316,15 +321,15 @@ class TvIconButton extends StatelessWidget {
                   ? LumaColors.primary
                   : selected
                   ? LumaColors.primarySoft
-                  : LumaColors.surfaceHigh,
+                  : LumaColors.surfaceHigh.withValues(alpha: 0.1),
               shape: BoxShape.circle,
-              border: Border.all(
-                color: focused
-                    ? LumaColors.primary
-                    : selected
-                    ? LumaColors.primaryDeep
-                    : LumaColors.line,
-              ),
+              // border: Border.all(
+              //   color: focused
+              //       ? LumaColors.primary
+              //       : selected
+              //       ? LumaColors.primaryDeep
+              //       : LumaColors.line,
+              // ),
               boxShadow: focused
                   ? tvFocusShadow(LumaColors.primary, focusElevation)
                   : null,
@@ -454,11 +459,7 @@ class TvSwitchToggle extends StatelessWidget {
             height: 30,
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
-              color: focused
-                  ? LumaColors.primaryDeep
-                  : value
-                  ? LumaColors.primary
-                  : LumaColors.line,
+              color: value ? LumaColors.primary : LumaColors.line,
               borderRadius: BorderRadius.circular(100),
               boxShadow: focused
                   ? tvFocusShadow(LumaColors.primary, focusElevation)
@@ -547,11 +548,8 @@ class TvSwitch extends StatelessWidget {
                 height: 26,
                 padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
-                  color: focused
-                      ? LumaColors.primaryDeep
-                      : value
-                      ? LumaColors.primary
-                      : LumaColors.line,
+                  color: (value ? LumaColors.primary : LumaColors.line)
+                      .withValues(alpha: focused ? 1 : 0.6),
                   borderRadius: BorderRadius.circular(100),
                   boxShadow: focused
                       ? tvFocusShadow(LumaColors.primary, focusElevation)

@@ -134,6 +134,38 @@ class VideoFileNameParser {
     return null;
   }
 
+  /// 从文件完整路径推断所在文件夹（不含文件名）。
+  static List<String>? _foldersFromPath(String fileName) {
+    final normalized = fileName.replaceAll('\\', '/');
+    final parts = normalized
+        .split('/')
+        .where((part) => part.isNotEmpty)
+        .toList();
+    if (parts.length <= 1) return null;
+    parts.removeLast();
+    return parts;
+  }
+
+  static bool _isSeasonFolder(String name) {
+    final lower = name.toLowerCase().trim();
+    if (lower.isEmpty) return false;
+    return RegExp(
+      r'^(season\s*0?\d{1,2}|s\d{1,2}|specials?|extras?|bonus|第\s*\d{1,3}\s*季|\d{1,3})$',
+      caseSensitive: false,
+    ).hasMatch(lower);
+  }
+
+  /// 从所在文件夹推断剧集名：跳过 `Season 01`、`S01`、`第二季` 等季目录。
+  static String? _seriesTitleFromFolders(List<String>? folders) {
+    if (folders == null) return null;
+    for (final folder in folders.reversed) {
+      final name = folder.trim();
+      if (name.isEmpty || _isSeasonFolder(name)) continue;
+      return name;
+    }
+    return null;
+  }
+
   static bool _yearIsPlausibleTitleStart(String spaced, int index) {
     // A leading four-digit number with no other year is usually part of the
     // title (e.g. "1917", "2012"), not a release year.
@@ -146,7 +178,10 @@ class VideoFileNameParser {
         .replaceAll(RegExp(r'[._]+'), ' ')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
-    final folderSeason = _seasonFromFolders(folders);
+    // 直接传完整路径解析时，从路径里推断所在文件夹；
+    // 扫描器会显式传入相对文件夹列表，优先使用它。
+    final showFolders = folders ?? _foldersFromPath(fileName);
+    final folderSeason = _seasonFromFolders(showFolders);
 
     // Keep the release year before stripping brackets and tags.
     int? year;
@@ -276,6 +311,16 @@ class VideoFileNameParser {
       titleRaw = titleRaw.trim();
     }
 
+    if (titleRaw.isEmpty) {
+      // 文件名以 SxxEyy 开头时（如 s01e01.1080p.mp4），标题在标记前为空，
+      // 此时用所在剧集文件夹名作为剧集标题，避免每集被当成不同剧集。
+      final folderTitle = marker == null
+          ? null
+          : _seriesTitleFromFolders(showFolders);
+      if (folderTitle != null) {
+        titleRaw = folderTitle;
+      }
+    }
     if (titleRaw.isEmpty) {
       titleRaw = spaced
           .replaceAll(RegExp(r'\[[^\]]*\]'), ' ')

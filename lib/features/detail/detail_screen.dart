@@ -437,6 +437,7 @@ class _Hero extends StatelessWidget {
                               icon: Icons.play_arrow_rounded,
                               autofocus: true,
                               onTap: onPlay,
+                              backgroundColor: LumaColors.primary,
                             ),
                             const SizedBox(width: 12),
                             if (!isSeries)
@@ -455,6 +456,7 @@ class _Hero extends StatelessWidget {
                                 icon: Icons.auto_awesome_rounded,
                                 style: TvButtonStyle.ghost,
                                 onTap: onScrape,
+                                backgroundColor: LumaColors.accent,
                               ),
                             ],
                           ],

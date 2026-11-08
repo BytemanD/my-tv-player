@@ -82,6 +82,10 @@ class _PlayerScreenState extends State<PlayerScreen>
   String? _panelMessage;
 
   double _speed = 1.0;
+
+  /// 当前音量（0~100），可空。首次打开视频时不覆盖系统默认音量，
+  /// 只有用户开始滑动调节时才初始化并开始追踪。
+  double? _currentVolume;
   BoxFit _fit = BoxFit.contain;
   Timer? _hideTimer;
   Timer? _saveTimer;
@@ -94,6 +98,27 @@ class _PlayerScreenState extends State<PlayerScreen>
   DateTime? _lastInteractionAt;
   DateTime? _tapDownAt;
   Offset? _tapDownAtPosition;
+
+  /// 长按判定定时器：按住超过阈值后进入 2.0x 倍速，放开还原。
+  Timer? _holdTimer;
+
+  /// 长按前的播放速度，用于放开时还原。
+  double _speedBeforeHold = 1.0;
+
+  /// 长按倍速是否已生效（仅在 600ms 定时器真正触发后置为 true，单击不会误触）。
+  bool _isSpeedHoldActive = false;
+
+  /// 垂直拖动：起始位置，用于计算位移。
+  Offset? _dragStartPosition;
+
+  /// 拖动开始时的音量（0.0~1.0）。
+  double _dragStartVolume = 1.0;
+
+  /// 是否为右侧拖动（调音量）。
+  bool _dragIsVolume = false;
+
+  String? _volumeFlash;
+  Timer? _volumeFlashTimer;
 
   late final AnimationController _panelController;
   late final Animation<Offset> _panelSlide;
@@ -546,6 +571,99 @@ class _PlayerScreenState extends State<PlayerScreen>
     _tapForwardToggle();
   }
 
+  /// 长按判定：按住 600ms 且手指在右侧区域，则进入 2.0x 倍速；
+  /// 放开后还原到长按前的播放速度。单击不会触发。
+  void _startHoldTimer(Offset position, double width) {
+    _holdTimer?.cancel();
+    final fraction = width <= 0 ? 0.5 : position.dx / width;
+    if (fraction <= 2 / 3) {
+      // 只有右侧长按才调速。
+      return;
+    }
+    _holdTimer = Timer(const Duration(milliseconds: 600), () {
+      _holdTimer = null;
+      _isSpeedHoldActive = true;
+      _speedBeforeHold = _speed;
+      _setSpeed(2.0);
+      _flash('×2.0');
+    });
+  }
+
+  /// 手指抬起：停止长按判定。只有真正进入过倍速状态才还原速度，
+  /// 单击（定时器还未触发就抬起）不会干扰正常点击。
+  void _endHold() {
+    _holdTimer?.cancel();
+    _holdTimer = null;
+    if (_isSpeedHoldActive) {
+      _isSpeedHoldActive = false;
+      _setSpeed(_speedBeforeHold);
+      _flash('还原速度');
+    }
+  }
+
+  Future<void> _setSpeed(double speed) async {
+    await _player.setRate(speed);
+    if (!mounted) return;
+    setState(() => _speed = speed);
+    if (widget.controller.settings.rememberPlaybackSpeed) {
+      await widget.controller.setLastPlaybackSpeed(speed);
+    }
+  }
+
+  /// 垂直拖动开始：根据手指区域决定调音量（右侧）。
+  Future<void> _startDrag(Offset position, double width) async {
+    // 拖动时取消长按倍速判定，避免与点击/长按冲突。
+    _holdTimer?.cancel();
+    _dragStartPosition = position;
+    final fraction = width <= 0 ? 0.5 : position.dx / width;
+    if (fraction > 2 / 3) {
+      // 右侧：调音量
+      _dragIsVolume = true;
+      _dragStartVolume = (_currentVolume ?? 70.0).clamp(0.0, 100.0) / 100.0;
+    } else {
+      // 左侧和中间区域：不处理（亮度控制已移除，避免编译问题）
+      _dragIsVolume = false;
+    }
+  }
+
+  /// 垂直拖动更新：根据位移调整音量，向上增大，向下减小。
+  void _updateDrag(Offset position, double height) {
+    if (!_dragIsVolume) return;
+    if (_dragStartPosition == null) return;
+
+    // 垂直位移：手指向上移动 delta 为负，表示增大；向下移动 delta 为正，表示减小。
+    final delta = _dragStartPosition!.dy - position.dy;
+    // 全屏滑动可变化 100%（0~100）。
+    final change = delta / height * 1.0;
+
+    if (_dragIsVolume) {
+      final next = (_dragStartVolume + change).clamp(0.0, 1.0);
+      _setVolume(next);
+      _flashVolume('音量 ${(next * 100).round()}%');
+    }
+  }
+
+  /// 垂直拖动结束。
+  void _endDrag() {
+    _dragStartPosition = null;
+    _dragIsVolume = false;
+  }
+
+  Future<void> _setVolume(double volume) async {
+    await _player.setVolume(volume * 100);
+    _currentVolume = volume * 100;
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  void _flashVolume(String message) {
+    _volumeFlashTimer?.cancel();
+    setState(() => _volumeFlash = message);
+    _volumeFlashTimer = Timer(const Duration(milliseconds: 800), () {
+      if (mounted) setState(() => _volumeFlash = null);
+    });
+  }
+
   void _openPanel() {
     setState(() {
       _panelOpen = true;
@@ -592,6 +710,8 @@ class _PlayerScreenState extends State<PlayerScreen>
       subscription.cancel();
     }
     _tapSuppressTimer?.cancel();
+    _holdTimer?.cancel();
+    _volumeFlashTimer?.cancel();
     _panelController.dispose();
     _player.dispose();
     _playerFocus.dispose();
@@ -623,11 +743,19 @@ class _PlayerScreenState extends State<PlayerScreen>
           onPointerDown: (event) {
             _tapDownAt = DateTime.now();
             _tapDownAtPosition = event.localPosition;
+            _startHoldTimer(
+              event.localPosition,
+              MediaQuery.sizeOf(context).width,
+            );
           },
           onPointerUp: (event) {
+            _endHold();
+            _endDrag();
             _handleSurfaceTap(event);
           },
           onPointerCancel: (_) {
+            _endHold();
+            _endDrag();
             _tapDownAt = null;
             _tapDownAtPosition = null;
             _scheduleHide();
@@ -644,6 +772,15 @@ class _PlayerScreenState extends State<PlayerScreen>
                 MediaQuery.sizeOf(context).width,
               ),
               onDoubleTap: _handleVideoDoubleTap,
+              onVerticalDragStart: (details) => _startDrag(
+                details.localPosition,
+                MediaQuery.sizeOf(context).width,
+              ),
+              onVerticalDragUpdate: (details) => _updateDrag(
+                details.localPosition,
+                MediaQuery.sizeOf(context).height,
+              ),
+              onVerticalDragEnd: (_) => _endDrag(),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -726,6 +863,46 @@ class _PlayerScreenState extends State<PlayerScreen>
                                 fontWeight: FontWeight.w500,
                                 color: LumaColors.accent,
                               ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (_volumeFlash != null)
+                    IgnorePointer(
+                      child: Align(
+                        alignment: const Alignment(0, -0.15),
+                        child: AnimatedOpacity(
+                          opacity: 1,
+                          duration: const Duration(milliseconds: 150),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 22,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.72),
+                              borderRadius: BorderRadius.circular(100),
+                              border: Border.all(color: LumaColors.accentSoft),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.volume_up_rounded,
+                                  size: 20,
+                                  color: LumaColors.accent,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  _volumeFlash!,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                    color: LumaColors.accent,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -958,18 +1135,15 @@ class _PlayerScreenState extends State<PlayerScreen>
                           padding: EdgeInsets.only(left: 16),
                           child: Text(
                             '即将播放下一集…',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: LumaColors.accent,
-                            ),
+                            style: TextStyle(fontSize: 12, color: Colors.white),
                           ),
                         ),
                       const Spacer(),
-                      const Text(
+                      Text(
                         '单击 显示/隐藏  ·  双击 快进退/播放',
                         style: TextStyle(
                           fontSize: 11.5,
-                          color: Color(0xFF8E9099),
+                          color: Colors.white.withValues(alpha: 0.85),
                         ),
                       ),
                     ],
@@ -997,7 +1171,7 @@ class _PlayerScreenState extends State<PlayerScreen>
             fontSize: 11,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.4,
-            color: LumaColors.textMutedOnSurface,
+            color: Colors.white,
           ),
         ),
       );
@@ -1041,12 +1215,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                     label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      color: focused
-                          ? LumaColors.textOnSurface
-                          : LumaColors.textDimOnSurface,
-                    ),
+                    style: TextStyle(fontSize: 13.5, color: Colors.white),
                   ),
                 ),
                 if (detail != null)
@@ -1054,7 +1223,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                     detail,
                     style: TextStyle(
                       fontSize: 11,
-                      color: LumaColors.textMutedOnSurface,
+                      color: Colors.white.withValues(alpha: 0.75),
                     ),
                   ),
               ],
@@ -1220,7 +1389,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         autofocus: true,
         child: Container(
           decoration: BoxDecoration(
-            color: LumaColors.primary.withValues(alpha: 0.40),
+            color: LumaColors.primary.withValues(alpha: 0.70),
             border: Border(
               left: BorderSide(color: LumaColors.primaryDeep, width: 1),
             ),
@@ -1235,8 +1404,10 @@ class _PlayerScreenState extends State<PlayerScreen>
                     children: [
                       TabBar(
                         isScrollable: false,
-                        labelColor: LumaColors.accent,
-                        unselectedLabelColor: LumaColors.textDimOnSurface,
+                        labelColor: Colors.white,
+                        unselectedLabelColor: Colors.white.withValues(
+                          alpha: 0.7,
+                        ),
                         indicatorColor: LumaColors.accent,
                         indicatorWeight: 3,
                         labelStyle: TextStyle(
@@ -1268,7 +1439,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                   padding: const EdgeInsets.only(top: 14, left: 20, right: 20),
                   child: Text(
                     _panelMessage!,
-                    style: TextStyle(fontSize: 12, color: LumaColors.accent),
+                    style: TextStyle(fontSize: 12, color: Colors.white),
                   ),
                 ),
             ],

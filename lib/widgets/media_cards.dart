@@ -43,27 +43,31 @@ class PosterCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: radius,
                   border: Border.all(
-                    color: focused ? LumaColors.primary : Colors.transparent,
-                    width: 2.2,
+                    color: focused
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.55),
+                    width: focused ? 2.6 : 2,
                   ),
                   boxShadow: focused
                       ? [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.55),
-                            blurRadius: 26,
-                            offset: const Offset(0, 14),
+                            color: Colors.white.withValues(alpha: 0.35),
+                            blurRadius: 24,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 6),
                           ),
                           BoxShadow(
-                            color: LumaColors.primary.withValues(alpha: 0.12),
-                            blurRadius: 36,
+                            color: LumaColors.primary.withValues(alpha: 0.14),
+                            blurRadius: 34,
                             spreadRadius: 1,
                           ),
                         ]
                       : [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.25),
-                            blurRadius: 12,
-                            offset: const Offset(0, 6),
+                            color: Colors.white.withValues(alpha: 0.25),
+                            blurRadius: 16,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                 ),
@@ -129,10 +133,10 @@ class PosterCard extends StatelessWidget {
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.35,
+                                      color: Colors.white.withValues(
+                                        alpha: 0.25,
                                       ),
-                                      blurRadius: 18,
+                                      blurRadius: 14,
                                     ),
                                   ],
                                 ),
@@ -235,18 +239,33 @@ class ContinueCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: radius,
                   border: Border.all(
-                    color: focused ? LumaColors.primary : Colors.transparent,
-                    width: 2,
+                    color: focused
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.55),
+                    width: focused ? 2.6 : 2,
                   ),
                   boxShadow: focused
                       ? [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.5),
+                            color: Colors.white.withValues(alpha: 0.35),
                             blurRadius: 24,
-                            offset: const Offset(0, 12),
+                            spreadRadius: 1,
+                            offset: const Offset(0, 6),
+                          ),
+                          BoxShadow(
+                            color: LumaColors.primary.withValues(alpha: 0.14),
+                            blurRadius: 34,
+                            spreadRadius: 1,
                           ),
                         ]
-                      : null,
+                      : [
+                          BoxShadow(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            blurRadius: 16,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                 ),
                 child: ClipRRect(
                   borderRadius: radius,

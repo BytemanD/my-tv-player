@@ -259,32 +259,32 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                   seed: current.title,
                 ),
               ),
-              const DecoratedBox(
+              DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                     colors: [
-                      Color(0xF207080B),
-                      Color(0xC407080B),
-                      Color(0x3307080B),
-                      Color(0x0007080B),
+                      LumaColors.background,
+                      LumaColors.background.withValues(alpha: 0.77),
+                      LumaColors.background.withValues(alpha: 0.20),
+                      LumaColors.background.withValues(alpha: 0),
                     ],
-                    stops: [0, 0.36, 0.7, 1],
+                    stops: const [0, 0.36, 0.7, 1],
                   ),
                 ),
               ),
-              const DecoratedBox(
+              DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color(0x0007080B),
-                      Color(0x6607080B),
-                      Color(0xE607080B),
+                      LumaColors.background.withValues(alpha: 0),
+                      LumaColors.background.withValues(alpha: 0.40),
+                      LumaColors.background.withValues(alpha: 0.90),
                     ],
-                    stops: [0.35, 0.72, 1],
+                    stops: const [0.35, 0.72, 1],
                   ),
                 ),
               ),
@@ -330,12 +330,12 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                         current.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 52,
                           height: 1.02,
                           fontWeight: FontWeight.w600,
                           letterSpacing: -1.0,
-                          color: Colors.white,
+                          color: LumaColors.text,
                         ),
                       ),
                     ),
@@ -364,7 +364,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                             '${current.year}',
                             style: TextStyle(
                               fontSize: 13.5,
-                              color: const Color(0xFFB0B2BB),
+                              color: LumaColors.textDim,
                             ),
                           ),
                           const _Dot(),
@@ -375,7 +375,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                               : formatRuntime(current.runtime),
                           style: TextStyle(
                             fontSize: 13.5,
-                            color: const Color(0xFFB0B2BB),
+                            color: LumaColors.textDim,
                           ),
                         ),
                         if (current.genres.isNotEmpty) ...[
@@ -384,7 +384,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                             current.genres.take(2).join(' / '),
                             style: TextStyle(
                               fontSize: 13.5,
-                              color: const Color(0xFFB0B2BB),
+                              color: LumaColors.textDim,
                             ),
                           ),
                         ],
@@ -398,10 +398,10 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                           current.overview!,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13.5,
                             height: 1.6,
-                            color: Color(0xFFAFB1BA),
+                            color: LumaColors.textDim,
                           ),
                         ),
                       ),
@@ -413,13 +413,19 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                           icon: Icons.play_arrow_rounded,
                           autofocus: true,
                           onTap: () => widget.onPlay(current),
+                          backgroundColor: LumaColors.primary.withValues(
+                            alpha: 0.6,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         TvButton(
                           label: '详情',
                           icon: Icons.info_outline_rounded,
-                          style: TvButtonStyle.outline,
+                          style: TvButtonStyle.filled,
                           onTap: () => widget.onDetails(current),
+                          backgroundColor: LumaColors.accent.withValues(
+                            alpha: 0.2,
+                          ),
                         ),
                         const Spacer(),
                         if (current.scrapeState == ScrapeState.pending ||
@@ -429,7 +435,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                               Icon(
                                 Icons.auto_awesome_outlined,
                                 size: 15,
-                                color: const Color(0xFF7C7F89),
+                                color: LumaColors.textMuted,
                               ),
                               const SizedBox(width: 6),
                               Text(
@@ -438,7 +444,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                                     : '未配置 TMDB',
                                 style: TextStyle(
                                   fontSize: 11.5,
-                                  color: const Color(0xFF7C7F89),
+                                  color: LumaColors.textMuted,
                                 ),
                               ),
                             ],
@@ -493,7 +499,9 @@ class _HeroDot extends StatelessWidget {
           height: 4,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(2),
-            color: active ? LumaColors.primary : const Color(0x66FFFFFF),
+            color: active
+                ? LumaColors.primary
+                : LumaColors.textMuted.withValues(alpha: 0.5),
           ),
         ),
       ),
@@ -509,7 +517,7 @@ class _Dot extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 10),
       child: Text(
         '·',
-        style: TextStyle(fontSize: 14, color: const Color(0xFFB0B2BB)),
+        style: TextStyle(fontSize: 14, color: LumaColors.textDim),
       ),
     );
   }

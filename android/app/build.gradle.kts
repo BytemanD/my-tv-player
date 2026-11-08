@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "io.luma.tv"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
