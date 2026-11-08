@@ -814,8 +814,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                     TvButton(
                       icon: Icons.more_vert_rounded,
                       style: TvButtonStyle.filled,
-                      backgroundColor:
-                          LumaColors.primary.withValues(alpha: 0.40),
+                      backgroundColor: LumaColors.primary.withValues(
+                        alpha: 0.40,
+                      ),
                       compact: true,
                       square: true,
                       onTap: () {
@@ -1079,13 +1080,13 @@ class _PlayerScreenState extends State<PlayerScreen>
                     label: '${speed}x',
                     selected: _speed == speed,
                     onTap: () async {
-                    await _player.setRate(speed);
-                    setState(() => _speed = speed);
-                    _panelMessage = '播放速度 ${speed}x';
-                    if (widget.controller.settings.rememberPlaybackSpeed) {
-                      await widget.controller.setLastPlaybackSpeed(speed);
-                    }
-                  },
+                      await _player.setRate(speed);
+                      setState(() => _speed = speed);
+                      _panelMessage = '播放速度 ${speed}x';
+                      if (widget.controller.settings.rememberPlaybackSpeed) {
+                        await widget.controller.setLastPlaybackSpeed(speed);
+                      }
+                    },
                   ),
                 )
                 .toList(),

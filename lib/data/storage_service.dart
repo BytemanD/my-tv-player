@@ -103,9 +103,7 @@ class StorageService {
       if (name.startsWith('.')) continue;
       dirs.add(StorageEntry(name: name, path: entity.path));
     }
-    dirs.sort(
-      (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
-    );
+    dirs.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     return dirs;
   }
 

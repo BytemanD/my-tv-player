@@ -99,7 +99,9 @@ class TmdbClient {
   final String language;
   final http.Client _client;
 
-  static const _host = 'api.themoviedb.org';
+  // api.tmdb.org 是 TMDB 官方提供的镜像域名，部分网络下
+  // api.themoviedb.org 无法访问时仍然可用；失败时自动回退。
+  static const _hosts = ['api.tmdb.org', 'api.themoviedb.org'];
   static const _basePath = '/3';
   DateTime _lastRequest = DateTime.fromMillisecondsSinceEpoch(0);
 
@@ -114,45 +116,55 @@ class TmdbClient {
       await Future<void>.delayed(const Duration(milliseconds: 60) - elapsed);
     }
 
-    final uri = Uri.https(_host, '$_basePath$path', {
-      ...query,
-      'language': language,
-      if (!_isBearer) 'api_key': apiKey,
-    });
-
     http.Response? response;
     Object? lastError;
-    for (var attempt = 0; attempt < 3; attempt++) {
-      try {
-        _lastRequest = DateTime.now();
-        response = await _client
-            .get(
-              uri,
-              headers: {
-                'Accept': 'application/json',
-                if (_isBearer) 'Authorization': 'Bearer $apiKey',
-              },
-            )
-            .timeout(const Duration(seconds: 18));
-        if (response.statusCode == 429) {
-          final retryAfter =
-              int.tryParse(response.headers['retry-after'] ?? '') ?? 2;
-          await Future<void>.delayed(
-            Duration(seconds: retryAfter.clamp(1, 10)),
-          );
-          continue;
+
+    for (final host in _hosts) {
+      final uri = Uri.https(host, '$_basePath$path', {
+        ...query,
+        'language': language,
+        if (!_isBearer) 'api_key': apiKey,
+      });
+      response = null;
+      for (var attempt = 0; attempt < 3; attempt++) {
+        try {
+          _lastRequest = DateTime.now();
+          response = await _client
+              .get(
+                uri,
+                headers: {
+                  'Accept': 'application/json',
+                  if (_isBearer) 'Authorization': 'Bearer $apiKey',
+                },
+              )
+              .timeout(const Duration(seconds: 18));
+          if (response.statusCode == 429) {
+            final retryAfter =
+                int.tryParse(response.headers['retry-after'] ?? '') ?? 2;
+            await Future<void>.delayed(
+              Duration(seconds: retryAfter.clamp(1, 10)),
+            );
+            continue;
+          }
+          if (response.statusCode >= 500 && attempt < 2) {
+            await Future<void>.delayed(const Duration(milliseconds: 600));
+            continue;
+          }
+          break;
+        } catch (error) {
+          lastError = error;
+          if (attempt < 2) {
+            await Future<void>.delayed(const Duration(milliseconds: 500));
+            continue;
+          }
         }
-        if (response.statusCode >= 500 && attempt < 2) {
-          await Future<void>.delayed(const Duration(milliseconds: 600));
-          continue;
-        }
+      }
+      // 只有网络失败、限流或 5xx 才换下一个域名；
+      // 401/404 等业务错误直接交给上层处理。
+      if (response != null &&
+          response.statusCode != 429 &&
+          response.statusCode < 500) {
         break;
-      } catch (error) {
-        lastError = error;
-        if (attempt < 2) {
-          await Future<void>.delayed(const Duration(milliseconds: 500));
-          continue;
-        }
       }
     }
 

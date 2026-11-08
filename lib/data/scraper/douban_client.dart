@@ -163,8 +163,8 @@ class DoubanClient {
       subtype: _asText(item['subtype']),
       year: _asYear(item['year']),
       rating: _asDouble(rating['average']),
-      posterPath: _asNullableText(images['medium']),
-      backdropPath: _asNullableText(images['large']),
+      posterPath: _imageUrl(images['medium']),
+      backdropPath: _imageUrl(images['large']),
       overview: _asNullableText(item['summary']),
       genres: _names(item['genres']),
       casts: casts
@@ -188,6 +188,31 @@ class DoubanClient {
   static String? _asNullableText(Object? value) {
     final text = _asText(value);
     return text.isEmpty ? null : text;
+  }
+
+  /// 豆瓣图片地址处理：
+  /// 1. 偶有 http:// 形式，Android 默认禁止明文请求，统一升级为 https；
+  /// 2. 搜索接口返回的多是 `/view/photo/s_ratio_poster/public/pXXX.jpg`
+  ///    这种低分辨率缩略图，改成 `/view/photo/l/public/pXXX.jpg` 大图。
+  static String? _imageUrl(Object? value) {
+    var text = _asNullableText(value);
+    if (text == null) return null;
+    if (text.startsWith('http://') && text.contains('doubanio.com')) {
+      text = text.replaceFirst('http://', 'https://');
+    }
+    final uri = Uri.tryParse(text);
+    if (uri == null || !uri.host.endsWith('doubanio.com')) return text;
+    final segments = uri.pathSegments.toList();
+    final view = segments.indexOf('view');
+    if (view >= 0 &&
+        segments.length > view + 4 &&
+        segments[view + 1] == 'photo' &&
+        segments[view + 3] == 'public' &&
+        segments[view + 2] != 'l') {
+      segments[view + 2] = 'l';
+      return uri.replace(pathSegments: segments).toString();
+    }
+    return text;
   }
 
   static int _asInt(Object? value) {
@@ -216,10 +241,7 @@ class DoubanClient {
 
   static List<String>? _names(Object? value) {
     if (value is! List) return null;
-    final names = value
-        .map(_asText)
-        .where((name) => name.isNotEmpty)
-        .toList();
+    final names = value.map(_asText).where((name) => name.isNotEmpty).toList();
     return names.isEmpty ? null : names;
   }
 
@@ -275,6 +297,28 @@ class DoubanCandidate {
   /// 别名列表（详情接口返回）。
   final List<String>? aka;
   final String? alt;
+
+  /// 详情接口可能缺少搜索接口已有的字段（例如海报），
+  /// 用另一条候选补全，已有值优先。
+  DoubanCandidate mergedWith(DoubanCandidate other) {
+    return DoubanCandidate(
+      id: id,
+      title: title,
+      originalTitle: originalTitle,
+      subtype: subtype,
+      year: year ?? other.year,
+      rating: rating ?? other.rating,
+      posterPath: posterPath ?? other.posterPath,
+      backdropPath: backdropPath ?? other.backdropPath,
+      overview: overview ?? other.overview,
+      genres: genres ?? other.genres,
+      casts: casts ?? other.casts,
+      directors: directors ?? other.directors,
+      episodeCount: episodeCount ?? other.episodeCount,
+      aka: aka ?? other.aka,
+      alt: alt ?? other.alt,
+    );
+  }
 }
 
 /// 豆瓣匹配器，复用 TMDB 匹配逻辑

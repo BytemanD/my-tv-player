@@ -9,12 +9,7 @@ void main() {
       'total': 1,
       'subjects': [
         {
-          'rating': {
-            'max': 10,
-            'average': 7.6,
-            'stars': '40',
-            'min': 0,
-          },
+          'rating': {'max': 10, 'average': 7.6, 'stars': '40', 'min': 0},
           'genres': ['剧情', '恐怖'],
           'title': '夺命许愿',
           'casts': [
@@ -28,12 +23,9 @@ void main() {
           ],
           'year': '2026',
           'images': {
-            'small':
-                'https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2931885934.jpg',
-            'large':
-                'https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2931885934.jpg',
-            'medium':
-                'https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2931885934.jpg',
+            'small': 'https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2931885934.jpg',
+            'large': 'https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2931885934.jpg',
+            'medium': 'https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2931885934.jpg',
           },
           'alt': 'https://movie.douban.com/subject/37125831/',
           'id': '37125831',
@@ -54,7 +46,7 @@ void main() {
     expect(candidate.directors, ['朴允书']);
     expect(
       candidate.posterPath,
-      'https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2931885934.jpg',
+      'https://img9.doubanio.com/view/photo/l/public/p2931885934.jpg',
     );
   });
 
@@ -73,6 +65,50 @@ void main() {
     expect(candidates.single.rating, isNull);
   });
 
+  test('upgrades http Douban image urls to https', () {
+    final candidates = DoubanClient.parseCandidates({
+      'subjects': [
+        {
+          'id': 1,
+          'title': '明文图片',
+          'images': {
+            'medium': 'http://img1.doubanio.com/view/photo/s_ratio_poster/public/p1.jpg',
+            'large': 'http://img1.doubanio.com/view/photo/s_ratio_poster/public/p2.jpg',
+          },
+        },
+      ],
+    });
+
+    expect(
+      candidates.single.posterPath,
+      'https://img1.doubanio.com/view/photo/l/public/p1.jpg',
+    );
+    expect(
+      candidates.single.backdropPath,
+      'https://img1.doubanio.com/view/photo/l/public/p2.jpg',
+    );
+  });
+
+  test('keeps already large Douban image urls unchanged', () {
+    final candidates = DoubanClient.parseCandidates({
+      'subjects': [
+        {
+          'id': 2,
+          'title': '大图',
+          'images': {
+            'medium':
+                'https://img3.doubanio.com/view/photo/l/public/p2932167080.jpg',
+          },
+        },
+      ],
+    });
+
+    expect(
+      candidates.single.posterPath,
+      'https://img3.doubanio.com/view/photo/l/public/p2932167080.jpg',
+    );
+  });
+
   test('returns empty list when subjects is missing', () {
     expect(DoubanClient.parseCandidates({'total': 0}), isEmpty);
   });
@@ -88,8 +124,7 @@ void main() {
       'rating': {'average': 7.6},
       'genres': ['剧情', '恐怖'],
       'images': {
-        'medium':
-            'https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2931885934.jpg',
+        'medium': 'https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2931885934.jpg',
       },
       'summary': '瑞麟高中的五名好友意外接触到一款名为“Girigo”的神秘APP……',
       'aka': ['为了纪念', 'Wish Your Death', 'If Wishes Could Kill', 'Girigo'],
@@ -120,28 +155,27 @@ void main() {
       ],
     });
 
-    final match = DoubanMatcher.best(
-      candidates,
-      title: 'If Wishes Could Kill',
-    );
+    final match = DoubanMatcher.best(candidates, title: 'If Wishes Could Kill');
     expect(match?.id, 37125831);
   });
 
-  test('trusts Douban relevance order for Latin titles with multiple results',
-      () {
-    final candidates = DoubanClient.parseCandidates({
-      'subjects': [
-        {'id': '1', 'title': '夺命许愿', 'year': '2026'},
-        {'id': '2', 'title': '另一个条目', 'year': '2026'},
-      ],
-    });
+  test(
+    'trusts Douban relevance order for Latin titles with multiple results',
+    () {
+      final candidates = DoubanClient.parseCandidates({
+        'subjects': [
+          {'id': '1', 'title': '夺命许愿', 'year': '2026'},
+          {'id': '2', 'title': '另一个条目', 'year': '2026'},
+        ],
+      });
 
-    final match = DoubanMatcher.best(
-      candidates,
-      title: 'If Wishes Could Kill',
-    );
-    expect(match?.id, 1);
-  });
+      final match = DoubanMatcher.best(
+        candidates,
+        title: 'If Wishes Could Kill',
+      );
+      expect(match?.id, 1);
+    },
+  );
 
   test('still prefers an exact title match over order', () {
     final candidates = DoubanClient.parseCandidates({
@@ -151,10 +185,7 @@ void main() {
       ],
     });
 
-    final match = DoubanMatcher.best(
-      candidates,
-      title: 'If Wishes Could Kill',
-    );
+    final match = DoubanMatcher.best(candidates, title: 'If Wishes Could Kill');
     expect(match?.id, 2);
   });
 }

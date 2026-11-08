@@ -251,15 +251,30 @@ class MetadataScraper {
     );
   }
 
-  Future<bool> scrapeSingle(MediaItem item, String tmdbApiKey, String language,
-      {bool forceRescan = false, String doubanApiKey = ''}) async {
+  Future<bool> scrapeSingle(
+    MediaItem item,
+    String tmdbApiKey,
+    String language, {
+    bool forceRescan = false,
+    String doubanApiKey = '',
+  }) async {
     final tmdbClient = TmdbClient(apiKey: tmdbApiKey, language: language);
     final doubanClient = DoubanClient(apiKey: doubanApiKey);
     try {
       if (item.isMovie) {
-        return await _scrapeMovie(item, tmdbClient, doubanClient, forceRescan: forceRescan);
+        return await _scrapeMovie(
+          item,
+          tmdbClient,
+          doubanClient,
+          forceRescan: forceRescan,
+        );
       } else {
-        return await _scrapeSeries([item], tmdbClient, doubanClient, forceRescan: forceRescan);
+        return await _scrapeSeries(
+          [item],
+          tmdbClient,
+          doubanClient,
+          forceRescan: forceRescan,
+        );
       }
     } finally {
       tmdbClient.dispose();
@@ -267,64 +282,71 @@ class MetadataScraper {
     }
   }
 
-  Future<bool> _scrapeMovie(MediaItem movie, TmdbClient tmdbClient, DoubanClient doubanClient,
-      {bool forceRescan = false}) async {
+  Future<bool> _scrapeMovie(
+    MediaItem movie,
+    TmdbClient tmdbClient,
+    DoubanClient doubanClient, {
+    bool forceRescan = false,
+  }) async {
     final nfo = await _nfoFor(movie);
     final title = nfo?.preferredTitle ?? movie.title;
     final year = nfo?.year ?? movie.year;
 
-    _log.info('搜索电影：$title (年份：$year, 语言：${tmdbClient.language}, forceRescan：$forceRescan)');
+    _log.info(
+      '搜索电影：$title (年份：$year, 语言：${tmdbClient.language}, forceRescan：$forceRescan)',
+    );
 
     TmdbTitle? details;
-    if (!forceRescan && nfo?.tmdbId != null) {
-      final nfoTmdbId = nfo!.tmdbId!;
-      details = await tmdbClient.movieDetails(nfoTmdbId);
-      _log.info('按TMDB ID直接获取：$nfoTmdbId -> ${details.title}');
-    } else {
-      if (forceRescan && nfo?.tmdbId != null) {
-        final nfoTmdbId = nfo!.tmdbId;
-        _log.info('强制重新搜索，忽略 NFO 中的 TMDB ID：$nfoTmdbId');
-      }
-      final candidates = await tmdbClient.searchMovie(title, year: year);
-      _log.info('TMDB 搜索结果：${candidates.length} 个候选');
-      for (final c in candidates.take(5)) {
-        _log.info('  候选：id=${c.id} title="${c.title}" original="${c.originalTitle}" year=${c.year} popularity=${c.popularity.toStringAsFixed(1)}');
-      }
-      final match = TmdbMatcher.best(candidates, title: title, year: year);
-      if (match != null) {
-        _log.info('TMDB 匹配成功：id=${match.id} title="${match.title}" year=${match.year}');
-        details = await tmdbClient.movieDetails(match.id);
-        _log.info('TMDB 详情标题：${details.title} (original: ${details.originalTitle})');
+    TmdbException? tmdbError;
+    Object? tmdbOtherError;
+    try {
+      if (!forceRescan && nfo?.tmdbId != null) {
+        final nfoTmdbId = nfo!.tmdbId!;
+        details = await tmdbClient.movieDetails(nfoTmdbId);
+        _log.info('按TMDB ID直接获取：$nfoTmdbId -> ${details.title}');
       } else {
-        _log.info('TMDB 匹配失败：没有达到阈值的候选，尝试豆瓣');
-        // TMDB 找不到，尝试豆瓣
-        if (doubanClient.apiKey.isNotEmpty) {
-          try {
-            final doubanCandidates = await doubanClient.searchMovie(title, year: year);
-            _log.info('豆瓣搜索结果：${doubanCandidates.length} 个候选');
-            for (final c in doubanCandidates.take(5)) {
-              _log.info('  豆瓣候选：id=${c.id} title="${c.title}" original="${c.originalTitle}" year=${c.year} rating=${c.rating}');
-            }
-            final doubanMatch = DoubanMatcher.best(doubanCandidates, title: title, year: year);
-            if (doubanMatch != null) {
-              _log.info('豆瓣匹配成功：id=${doubanMatch.id} title="${doubanMatch.title}" year=${doubanMatch.year}');
-              final doubanDetails = await _doubanDetails(
-                doubanClient,
-                doubanMatch,
-              );
-              await _applyDoubanMetadata(movie.id!, doubanDetails);
-              _log.info('豆瓣刮削完成：${movie.title}');
-              return true;
-            } else {
-              _log.info('豆瓣匹配失败：没有达到阈值的候选');
-            }
-          } catch (e) {
-            _log.info('豆瓣异常：$e');
-          }
+        if (forceRescan && nfo?.tmdbId != null) {
+          final nfoTmdbId = nfo!.tmdbId;
+          _log.info('强制重新搜索，忽略 NFO 中的 TMDB ID：$nfoTmdbId');
+        }
+        final candidates = await tmdbClient.searchMovie(title, year: year);
+        _log.info('TMDB 搜索结果：${candidates.length} 个候选');
+        for (final c in candidates.take(5)) {
+          _log.info(
+            '  候选：id=${c.id} title="${c.title}" original="${c.originalTitle}" year=${c.year} popularity=${c.popularity.toStringAsFixed(1)}',
+          );
+        }
+        final match = TmdbMatcher.best(candidates, title: title, year: year);
+        if (match != null) {
+          _log.info(
+            'TMDB 匹配成功：id=${match.id} title="${match.title}" year=${match.year}',
+          );
+          details = await tmdbClient.movieDetails(match.id);
+          _log.info(
+            'TMDB 详情标题：${details.title} (original: ${details.originalTitle})',
+          );
         } else {
-          _log.info('豆瓣 API Key 未配置，跳过豆瓣刮削');
+          _log.info('TMDB 匹配失败：没有达到阈值的候选，尝试豆瓣');
         }
       }
+    } on TmdbException catch (error) {
+      tmdbError = error;
+      _log.info('TMDB 请求失败，尝试豆瓣：${error.message}');
+    } catch (error) {
+      tmdbOtherError = error;
+      _log.info('TMDB 请求异常，尝试豆瓣：${_short(error)}');
+    }
+
+    // TMDB 失败（网络错误、超时、API Key 无效、详情获取失败等）
+    // 或没有匹配结果时，都尝试豆瓣。
+    if (details == null) {
+      final doubanOk = await _scrapeMovieFromDouban(
+        movie: movie,
+        title: title,
+        year: year,
+        doubanClient: doubanClient,
+      );
+      if (doubanOk) return true;
     }
 
     if (details != null) {
@@ -365,12 +387,63 @@ class MetadataScraper {
       return true;
     }
 
+    // 豆瓣也不可用时，把 TMDB 的原始错误抛出去，
+    // 让调用方能够显示“连接失败”而不是误报“未找到匹配条目”。
+    if (tmdbError != null) throw tmdbError;
+    if (tmdbOtherError != null) throw tmdbOtherError;
+
     await _repository.setScrapeState(
       movie.id!,
       ScrapeState.failed,
       error: '未找到匹配条目',
     );
     return false;
+  }
+
+  /// TMDB 不可用或无匹配时，用豆瓣刮削电影。
+  ///
+  /// 返回 true 表示豆瓣已成功写入元数据。
+  Future<bool> _scrapeMovieFromDouban({
+    required MediaItem movie,
+    required String title,
+    required int? year,
+    required DoubanClient doubanClient,
+  }) async {
+    if (doubanClient.apiKey.isEmpty) {
+      _log.info('豆瓣 API Key 未配置，跳过豆瓣刮削');
+      return false;
+    }
+    try {
+      final doubanCandidates = await doubanClient.searchMovie(
+        title,
+        year: year,
+      );
+      _log.info('豆瓣搜索结果：${doubanCandidates.length} 个候选');
+      for (final c in doubanCandidates.take(5)) {
+        _log.info(
+          '  豆瓣候选：id=${c.id} title="${c.title}" original="${c.originalTitle}" year=${c.year} rating=${c.rating}',
+        );
+      }
+      final doubanMatch = DoubanMatcher.best(
+        doubanCandidates,
+        title: title,
+        year: year,
+      );
+      if (doubanMatch == null) {
+        _log.info('豆瓣匹配失败：没有达到阈值的候选');
+        return false;
+      }
+      _log.info(
+        '豆瓣匹配成功：id=${doubanMatch.id} title="${doubanMatch.title}" year=${doubanMatch.year}',
+      );
+      final doubanDetails = await _doubanDetails(doubanClient, doubanMatch);
+      await _applyDoubanMetadata(movie.id!, doubanDetails);
+      _log.info('豆瓣刮削完成：${movie.title}');
+      return true;
+    } catch (e) {
+      _log.info('豆瓣异常：$e');
+      return false;
+    }
   }
 
   Future<bool> _scrapeSeries(
@@ -394,59 +467,60 @@ class MetadataScraper {
     final year = nfo?.year ?? lead.year;
     final oldKey = lead.seriesKey ?? 'media:${lead.id}';
 
-    _log.info('搜索剧集：$title (年份：$year, 语言：${tmdbClient.language}, forceRescan：$forceRescan)');
+    _log.info(
+      '搜索剧集：$title (年份：$year, 语言：${tmdbClient.language}, forceRescan：$forceRescan)',
+    );
 
     TmdbTitle? show;
-    if (!forceRescan && nfo?.tmdbId != null) {
-      final nfoTmdbId = nfo!.tmdbId!;
-      show = await tmdbClient.tvDetails(nfoTmdbId);
-      _log.info('按TMDB ID直接获取剧集：$nfoTmdbId -> ${show.title}');
-    } else {
-      if (forceRescan && nfo?.tmdbId != null) {
-        final nfoTmdbId = nfo!.tmdbId;
-        _log.info('强制重新搜索剧集，忽略 NFO 中的 TMDB ID：$nfoTmdbId');
-      }
-      final candidates = await tmdbClient.searchTv(title, year: year);
-      _log.info('TMDB 搜索结果：${candidates.length} 个候选');
-      for (final c in candidates.take(5)) {
-        _log.info('  候选：id=${c.id} title="${c.title}" original="${c.originalTitle}" year=${c.year} popularity=${c.popularity.toStringAsFixed(1)}');
-      }
-      final match = TmdbMatcher.best(candidates, title: title, year: year);
-      if (match != null) {
-        _log.info('TMDB 匹配成功：id=${match.id} title="${match.title}" year=${match.year}');
-        show = await tmdbClient.tvDetails(match.id);
-        _log.info('TMDB 详情标题：${show.title} (original: ${show.originalTitle})');
+    TmdbException? tmdbError;
+    Object? tmdbOtherError;
+    try {
+      if (!forceRescan && nfo?.tmdbId != null) {
+        final nfoTmdbId = nfo!.tmdbId!;
+        show = await tmdbClient.tvDetails(nfoTmdbId);
+        _log.info('按TMDB ID直接获取剧集：$nfoTmdbId -> ${show.title}');
       } else {
-        _log.info('TMDB 匹配失败：没有达到阈值的候选，尝试豆瓣');
-        // TMDB 找不到，尝试豆瓣
-        if (doubanClient.apiKey.isNotEmpty) {
-          try {
-            final doubanCandidates = await doubanClient.searchTv(title, year: year);
-            _log.info('豆瓣搜索结果：${doubanCandidates.length} 个候选');
-            for (final c in doubanCandidates.take(5)) {
-              _log.info('  豆瓣候选：id=${c.id} title="${c.title}" original="${c.originalTitle}" year=${c.year} rating=${c.rating}');
-            }
-            final doubanMatch = DoubanMatcher.best(doubanCandidates, title: title, year: year);
-            if (doubanMatch != null) {
-              _log.info('豆瓣匹配成功：id=${doubanMatch.id} title="${doubanMatch.title}" year=${doubanMatch.year}');
-              final doubanDetails = await _doubanDetails(
-                doubanClient,
-                doubanMatch,
-              );
-              await _applyDoubanSeriesMetadata(oldKey, doubanDetails);
-              await _repository.setSeriesScrapeState(oldKey, ScrapeState.done);
-              _log.info('豆瓣剧集刮削完成：$title');
-              return true;
-            } else {
-              _log.info('豆瓣匹配失败：没有达到阈值的候选');
-            }
-          } catch (e) {
-            _log.info('豆瓣异常：$e');
-          }
+        if (forceRescan && nfo?.tmdbId != null) {
+          final nfoTmdbId = nfo!.tmdbId;
+          _log.info('强制重新搜索剧集，忽略 NFO 中的 TMDB ID：$nfoTmdbId');
+        }
+        final candidates = await tmdbClient.searchTv(title, year: year);
+        _log.info('TMDB 搜索结果：${candidates.length} 个候选');
+        for (final c in candidates.take(5)) {
+          _log.info(
+            '  候选：id=${c.id} title="${c.title}" original="${c.originalTitle}" year=${c.year} popularity=${c.popularity.toStringAsFixed(1)}',
+          );
+        }
+        final match = TmdbMatcher.best(candidates, title: title, year: year);
+        if (match != null) {
+          _log.info(
+            'TMDB 匹配成功：id=${match.id} title="${match.title}" year=${match.year}',
+          );
+          show = await tmdbClient.tvDetails(match.id);
+          _log.info(
+            'TMDB 详情标题：${show.title} (original: ${show.originalTitle})',
+          );
         } else {
-          _log.info('豆瓣 API Key 未配置，跳过豆瓣刮削');
+          _log.info('TMDB 匹配失败：没有达到阈值的候选，尝试豆瓣');
         }
       }
+    } on TmdbException catch (error) {
+      tmdbError = error;
+      _log.info('TMDB 请求失败，尝试豆瓣：${error.message}');
+    } catch (error) {
+      tmdbOtherError = error;
+      _log.info('TMDB 请求异常，尝试豆瓣：${_short(error)}');
+    }
+
+    // TMDB 请求失败或无匹配结果时，都尝试豆瓣。
+    if (show == null) {
+      final doubanOk = await _scrapeSeriesFromDouban(
+        oldKey: oldKey,
+        title: title,
+        year: year,
+        doubanClient: doubanClient,
+      );
+      if (doubanOk) return true;
     }
 
     if (show != null) {
@@ -502,12 +576,57 @@ class MetadataScraper {
       return true;
     }
 
+    if (tmdbError != null) throw tmdbError;
+    if (tmdbOtherError != null) throw tmdbOtherError;
+
     await _repository.setSeriesScrapeState(
       oldKey,
       ScrapeState.failed,
       error: '未找到匹配条目',
     );
     return false;
+  }
+
+  /// TMDB 不可用或无匹配时，用豆瓣刮削剧集（仅剧集级别信息）。
+  Future<bool> _scrapeSeriesFromDouban({
+    required String oldKey,
+    required String title,
+    required int? year,
+    required DoubanClient doubanClient,
+  }) async {
+    if (doubanClient.apiKey.isEmpty) {
+      _log.info('豆瓣 API Key 未配置，跳过豆瓣刮削');
+      return false;
+    }
+    try {
+      final doubanCandidates = await doubanClient.searchTv(title, year: year);
+      _log.info('豆瓣搜索结果：${doubanCandidates.length} 个候选');
+      for (final c in doubanCandidates.take(5)) {
+        _log.info(
+          '  豆瓣候选：id=${c.id} title="${c.title}" original="${c.originalTitle}" year=${c.year} rating=${c.rating}',
+        );
+      }
+      final doubanMatch = DoubanMatcher.best(
+        doubanCandidates,
+        title: title,
+        year: year,
+      );
+      if (doubanMatch == null) {
+        _log.info('豆瓣匹配失败：没有达到阈值的候选');
+        return false;
+      }
+      _log.info(
+        '豆瓣匹配成功：id=${doubanMatch.id} title="${doubanMatch.title}" year=${doubanMatch.year}',
+      );
+      final doubanDetails = await _doubanDetails(doubanClient, doubanMatch);
+      await _applyDoubanSeriesMetadata(oldKey, doubanDetails);
+      await _repository.setSeriesScrapeState(oldKey, ScrapeState.done);
+      _log.info('豆瓣剧集刮削完成：$title');
+      return true;
+    } catch (e) {
+      _log.info('豆瓣异常：$e');
+      return false;
+    }
   }
 
   /// 获取豆瓣详情（简介、别名、集数）。
@@ -525,7 +644,8 @@ class MetadataScraper {
           '豆瓣详情：id=${details.id} 简介=$summaryLength字 '
           '集数=${details.episodeCount ?? '-'} 别名=${details.aka?.join('/') ?? '-'}',
         );
-        return details;
+        // 详情接口偶尔缺少 images，用搜索结果补上海报/背景图。
+        return details.mergedWith(match);
       }
       _log.warning('豆瓣详情为空，使用搜索结果：id=${match.id}');
     } catch (error) {
@@ -535,7 +655,10 @@ class MetadataScraper {
   }
 
   /// 将豆瓣电影元数据应用到数据库
-  Future<void> _applyDoubanMetadata(int mediaId, DoubanCandidate details) async {
+  Future<void> _applyDoubanMetadata(
+    int mediaId,
+    DoubanCandidate details,
+  ) async {
     await _repository.applyMetadata(
       mediaId,
       ScrapedMetadata(

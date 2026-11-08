@@ -144,7 +144,6 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
     Navigator.of(context).pop(path);
   }
 
-
   @override
   Widget build(BuildContext context) {
     final current = _currentPath;

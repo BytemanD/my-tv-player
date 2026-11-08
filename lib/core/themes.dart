@@ -15,7 +15,13 @@ abstract final class LumaThemes {
   static const beanSand = beanSandTheme;
   static const pomegranate = pomegranateTheme;
 
-  static const all = [classicTheme, byzantiumTheme, pineAmberTheme, beanSandTheme, pomegranateTheme];
+  static const all = [
+    classicTheme,
+    byzantiumTheme,
+    pineAmberTheme,
+    beanSandTheme,
+    pomegranateTheme,
+  ];
 
   static LumaThemeOption byId(String? id) =>
       all.firstWhere((option) => option.id == id, orElse: () => classicTheme);

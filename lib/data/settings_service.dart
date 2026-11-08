@@ -118,7 +118,8 @@ class SettingsService extends ChangeNotifier {
   }
 
   /// 是否记住上一次的播放速度。打开后，下一个视频将沿用上次切换的速度。
-  bool get rememberPlaybackSpeed => _prefs.getBool(_kRememberPlaybackSpeed) ?? true;
+  bool get rememberPlaybackSpeed =>
+      _prefs.getBool(_kRememberPlaybackSpeed) ?? true;
 
   /// 上一次使用的播放速度（倍率），默认 1.0。
   double get lastPlaybackSpeed {
@@ -186,10 +187,7 @@ class SettingsService extends ChangeNotifier {
   }
 
   Future<void> setThemeMode(String value) async {
-    await _prefs.setString(
-      _kThemeMode,
-      value == 'light' ? 'light' : 'dark',
-    );
+    await _prefs.setString(_kThemeMode, value == 'light' ? 'light' : 'dark');
     notifyListeners();
   }
 }
