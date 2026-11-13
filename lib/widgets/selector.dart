@@ -23,7 +23,6 @@ class _TSelect extends State<TSelect> {
 
   @override
   Widget build(BuildContext context) {
-    logger.i("build selector, focuse: $focuse, value: $value");
     return TSpace([
       if (widget.label != null) ...[TSubTitle(widget.label!), TDivider()],
       for (int i = 0; i < widget.items.length; i++)

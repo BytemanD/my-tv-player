@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:luma_tv/core/formatters.dart';
+import 'package:luma_tv/core/common/utils.dart';
 import 'package:luma_tv/data/scanner/nfo_parser.dart';
 import 'package:luma_tv/data/scanner/video_file_name_parser.dart';
 import 'package:luma_tv/data/storage_service.dart';

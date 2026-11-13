@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/app_controller.dart';
 import 'package:luma_tv/controllers/theme_controller.dart';
-import 'package:luma_tv/core/formatters.dart';
+import 'package:luma_tv/core/common/utils.dart';
 import 'package:luma_tv/data/storage_service.dart';
 import 'package:luma_tv/widgets/button.dart';
 import 'package:luma_tv/widgets/tv_focusable.dart';

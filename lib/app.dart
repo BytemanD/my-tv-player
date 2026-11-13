@@ -40,7 +40,7 @@ class _LumaAppState extends State<LumaApp> {
 
   Future<void> _boot() async {
     logger.i('booting ...');
-    final prefs = await loadSharedPreferencesWithCache();
+    final prefs = await loadSharedPreferences();
 
     final settingService = SettingsService(prefs);
     final database = AppDatabase();

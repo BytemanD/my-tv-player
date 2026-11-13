@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 
-import '../core/formatters.dart';
+import '../core/common/utils.dart';
 
 enum MediaKind {
   movie('movie'),

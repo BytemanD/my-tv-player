@@ -27,7 +27,8 @@ void main() {
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
-    final settings = await SettingsService.load();
+    final prefs = await SharedPreferences.getInstance();
+    final settings = SettingsService(prefs);
     database = AppDatabase(
       factory: databaseFactoryFfi,
       path: inMemoryDatabasePath,
@@ -40,7 +41,7 @@ void main() {
       scanner: MediaScanner(),
     );
     await controller.initialize();
-    themeController = ThemeController();
+    themeController = ThemeController(prefs);
   });
 
   tearDown(() async {
@@ -53,9 +54,12 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(
-      ChangeNotifierProvider<AppController>.value(
-        value: controller,
-        child: MaterialApp(theme: themeController.getThemeData(), home: child),
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<AppController>.value(value: controller),
+          ChangeNotifierProvider<ThemeController>.value(value: themeController),
+        ],
+        child: MaterialApp(theme: themeController.appTheme.themeData, home: child),
       ),
     );
     await tester.pumpAndSettle();

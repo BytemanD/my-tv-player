@@ -4,7 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../core/formatters.dart';
+import '../core/common/utils.dart';
 import '../data/scraper/tmdb_client.dart';
 
 /// 豆瓣图片站有防盗链：不带 Referer 会返回 418。

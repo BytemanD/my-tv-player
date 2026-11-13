@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/app_controller.dart';
-import 'package:luma_tv/core/formatters.dart';
+import 'package:luma_tv/core/common/utils.dart';
 import 'package:luma_tv/data/models.dart';
 import 'package:luma_tv/widgets/artwork.dart';
 import 'package:luma_tv/widgets/button.dart';

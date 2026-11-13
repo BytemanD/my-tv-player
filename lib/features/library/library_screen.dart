@@ -43,6 +43,8 @@ class LibraryScreen extends StatefulWidget {
 }
 
 class _LibraryScreenState extends State<LibraryScreen> {
+  final FocusNode _focusNode = FocusNode();
+
   LibrarySort _sort = LibrarySort.recent;
   LibraryKind? _filter;
 

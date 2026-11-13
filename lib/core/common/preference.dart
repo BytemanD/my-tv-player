@@ -19,11 +19,6 @@ enum Options {
   const Options(this.key);
 }
 
-Future<SharedPreferencesWithCache> loadSharedPreferencesWithCache() {
-  return SharedPreferencesWithCache.create(
-    cacheOptions: SharedPreferencesWithCacheOptions(
-      // 必须声明你要缓存的键，不在 allowList 里的键无法读写
-      allowList: Options.values.map((x) => x.key).toSet(),
-    ),
-  );
+Future<SharedPreferences> loadSharedPreferences() {
+  return SharedPreferences.getInstance();
 }

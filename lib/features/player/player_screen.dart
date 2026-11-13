@@ -11,7 +11,7 @@ import 'package:path/path.dart' as p;
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../controllers/app_controller.dart';
-import '../../core/formatters.dart';
+import '../../core/common/utils.dart';
 // import '../../core/theme.dart';
 import '../../data/models.dart';
 import '../../data/settings_service.dart';

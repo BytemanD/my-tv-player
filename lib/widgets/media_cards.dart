@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/theme_controller.dart';
 import 'package:luma_tv/widgets/text.dart';
 
-import '../core/formatters.dart';
+import '../core/common/utils.dart';
 import '../data/models.dart';
 import 'artwork.dart';
 

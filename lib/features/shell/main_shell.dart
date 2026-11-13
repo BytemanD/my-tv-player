@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:luma_tv/core/common/log.dart';
+import 'package:luma_tv/widgets/navigation.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/app_controller.dart';
@@ -7,6 +8,36 @@ import '../home/home_screen.dart';
 import '../library/library_screen.dart';
 import '../settings/settings_screen.dart';
 import '../../widgets/tv_focusable.dart';
+
+final node1 = FocusNode();
+
+final items = [
+  NavRailItem(
+    label: '首页',
+    icon: Icons.home_outlined,
+    selectedIcon: Icons.home_rounded,
+  ),
+  NavRailItem(
+    label: '电影',
+    icon: Icons.movie_outlined,
+    selectedIcon: Icons.movie_rounded,
+  ),
+  NavRailItem(
+    label: '剧集',
+    icon: Icons.tv_outlined,
+    selectedIcon: Icons.tv_rounded,
+  ),
+  NavRailItem(
+    label: '媒体库',
+    icon: Icons.video_library_outlined,
+    selectedIcon: Icons.video_library_rounded,
+  ),
+  NavRailItem(
+    label: '设置',
+    icon: Icons.settings_outlined,
+    selectedIcon: Icons.settings_rounded,
+  ),
+];
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key, required this.child});
@@ -51,11 +82,11 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
   void _select(int index) {
     if (index == _index) return;
     setState(() => _index = index);
+    Dpad.of(context).requestFocus(items[index].focusNode);
   }
 
   @override
   Widget build(BuildContext context) {
-    logger.i('11111111111111111');
     final controller = context.watch<AppController>();
     return Scaffold(
       body: Stack(
@@ -65,7 +96,8 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
               // 左侧导航栏（NavRail）
               DpadRegion(
                 memoryKey: "_NavRail",
-                child: _NavRail(selectedIndex: _index, onSelect: _select),
+                // child: _NavRail(selectedIndex: _index, onSelect: _select),
+                child: NavRail(items, selectedIndex: _index, onSelect: _select),
               ),
               Expanded(
                 child: HomeNavigation(
@@ -136,6 +168,7 @@ class _NavRail extends StatelessWidget {
         children: [
           const SizedBox(height: 24),
           _NavItem(
+            focusNode: FocusNode(),
             label: '首页',
             icon: Icons.home_outlined,
             selectedIcon: Icons.home_rounded,
@@ -145,6 +178,7 @@ class _NavRail extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _NavItem(
+            focusNode: FocusNode(),
             label: '电影',
             icon: Icons.movie_outlined,
             selectedIcon: Icons.movie_rounded,
@@ -154,6 +188,7 @@ class _NavRail extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _NavItem(
+            focusNode: FocusNode(),
             label: '剧集',
             icon: Icons.tv_outlined,
             selectedIcon: Icons.tv_rounded,
@@ -163,6 +198,7 @@ class _NavRail extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _NavItem(
+            focusNode: FocusNode(),
             label: '媒体库',
             icon: Icons.video_library_outlined,
             selectedIcon: Icons.video_library_rounded,
@@ -173,6 +209,7 @@ class _NavRail extends StatelessWidget {
           const Spacer(),
           const SizedBox(height: 12),
           _NavItem(
+            focusNode: FocusNode(),
             label: '设置',
             icon: Icons.settings_outlined,
             selectedIcon: Icons.settings_rounded,
@@ -189,6 +226,7 @@ class _NavRail extends StatelessWidget {
 
 class _NavItem extends StatelessWidget {
   const _NavItem({
+    required this.focusNode,
     required this.label,
     required this.icon,
     required this.selectedIcon,
@@ -197,6 +235,7 @@ class _NavItem extends StatelessWidget {
     required this.onSelect,
   });
 
+  final FocusNode focusNode;
   final String label;
   final IconData icon;
   final IconData selectedIcon;
@@ -215,7 +254,7 @@ class _NavItem extends StatelessWidget {
         width: 72,
         decoration: BoxDecoration(
           color: selected
-              ? Theme.of(context).primaryColor
+              ? Theme.of(context).colorScheme.primary
               : Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(14),
         ),

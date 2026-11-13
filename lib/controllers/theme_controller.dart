@@ -70,7 +70,7 @@ class AppTheme {
 }
 
 class ThemeController extends ChangeNotifier {
-  final SharedPreferencesWithCache prefs;
+  final SharedPreferences prefs;
 
   AppTheme appTheme = _getAppTheme();
 

@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
-import '../../core/formatters.dart';
+import '../../core/common/utils.dart';
 import '../library_source.dart';
 import '../models.dart';
 import 'nfo_parser.dart';

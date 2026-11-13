@@ -40,7 +40,7 @@ enum Options {
 class SettingsService extends ChangeNotifier {
   static const seekIntervalOptions = [5, 10, 15, 30, 60];
 
-  final SharedPreferencesWithCache _prefs;
+  final SharedPreferences _prefs;
 
   new(this._prefs);
 

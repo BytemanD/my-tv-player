@@ -5,7 +5,7 @@ import 'package:luma_tv/widgets/text.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/app_controller.dart';
-import '../../core/formatters.dart';
+import '../../core/common/utils.dart';
 import '../../data/models.dart';
 import '../../widgets/button.dart';
 import '../../widgets/artwork.dart';

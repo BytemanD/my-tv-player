@@ -3,7 +3,7 @@ import 'package:luma_tv/widgets/button.dart';
 import 'package:luma_tv/widgets/divider.dart';
 import 'package:luma_tv/widgets/text.dart';
 
-import '../core/formatters.dart';
+import '../core/common/utils.dart';
 import '../data/models.dart';
 import 'media_cards.dart';
 
