@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/menu_controller.dart';
-import 'package:luma_tv/core/common/log.dart';
+import 'package:luma_tv/controllers/message_controller.dart';
 import 'package:luma_tv/widgets/navigation.dart';
 import 'package:provider/provider.dart';
 
@@ -52,8 +52,8 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<AppController>();
     final menuController = context.watch<AppMenuController>();
+    messageController.init(context);
 
     return Scaffold(
       body: Stack(
@@ -73,102 +73,6 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
               ),
               // 右侧内容区域
             ],
-          ),
-          // 底部通知条
-          Positioned(
-            left: 136,
-            right: 28,
-            bottom: 22,
-            child: IgnorePointer(
-              ignoring: controller.notice == null,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                transitionBuilder: (child, animation) => FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 0.25),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
-                  ),
-                ),
-                child: controller.notice == null
-                    ? const SizedBox.shrink()
-                    : Align(
-                        key: ValueKey(controller.notice),
-                        alignment: Alignment.centerRight,
-                        child: _NoticeBar(
-                          message: controller.notice!,
-                          isError: controller.noticeIsError,
-                          onDismiss: controller.dismissNotice,
-                        ),
-                      ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NoticeBar extends StatelessWidget {
-  const _NoticeBar({
-    required this.message,
-    required this.isError,
-    required this.onDismiss,
-  });
-
-  final String message;
-  final bool isError;
-  final VoidCallback onDismiss;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = isError ? const Color(0xFFE07373) : const Color(0xFFE9C57E);
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 620),
-      padding: const EdgeInsets.fromLTRB(18, 13, 12, 13),
-      decoration: BoxDecoration(
-        color: const Color(0xF214161C),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: accent.withValues(alpha: 0.55)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.45),
-            blurRadius: 30,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isError ? Icons.error_outline_rounded : Icons.check_circle_outline,
-            size: 18,
-            color: accent,
-          ),
-          const SizedBox(width: 11),
-          Flexible(
-            child: Text(
-              message,
-              style: TextStyle(
-                fontSize: 13,
-                height: 1.4,
-                color: const Color(0xFFF4F1EA),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          TvIconButton(
-            icon: Icons.close_rounded,
-            size: 30,
-            iconSize: 15,
-            onTap: onDismiss,
           ),
         ],
       ),

@@ -23,7 +23,7 @@ class NavRail extends StatelessWidget {
         ),
       );
       if (entry.key == menuController.index) {
-        logger.i('request focus: ${entry.value.label}');
+        logger.d('request focus: ${entry.value.label}');
         item.focusNode?.requestFocus();
       }
       return Focus(focusNode: FocusNode(), child: item);

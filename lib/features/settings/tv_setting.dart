@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/app_controller.dart';
+import 'package:luma_tv/controllers/message_controller.dart';
 import 'package:luma_tv/controllers/theme_controller.dart';
-import 'package:luma_tv/core/common/notice.dart';
 import 'package:luma_tv/data/library_source.dart';
 import 'package:luma_tv/data/settings_service.dart';
 import 'package:luma_tv/widgets/button.dart';
@@ -178,6 +178,7 @@ class TvScan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ScaffoldMessenger.of(context);
     return TSheet(
       Column(
         children: [
@@ -228,8 +229,13 @@ class TvScan extends StatelessWidget {
               TButton(
                 label: "立即扫描",
                 icon: Icons.auto_awesome_rounded,
-                onClick: () {
-                  controller.scanAll();
+                onClick: () async {
+                  await controller.scanAll();
+                  // scaffoldMessengerKey.currentState?.showSnackBar(
+                  //   const SnackBar(content: Text('全局提示')),
+                  // );
+
+                  messageController.success("扫描完成");
                 },
               ),
             ],

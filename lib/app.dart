@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/menu_controller.dart';
+import 'package:luma_tv/controllers/message_controller.dart';
 import 'package:luma_tv/controllers/theme_controller.dart';
 import 'package:luma_tv/core/common/log.dart';
 import 'package:luma_tv/core/common/preference.dart';
@@ -111,6 +112,7 @@ class _LumaMaterialApp extends StatelessWidget {
     return MaterialApp(
       title: 'Luma',
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: scaffoldMessengerKey,
       theme: theme,
       builder: Dpad.wrap(
         theme: const DpadThemeData(
