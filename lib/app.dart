@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:luma_tv/controllers/menu_controller.dart';
 import 'package:luma_tv/controllers/theme_controller.dart';
 import 'package:luma_tv/core/common/log.dart';
 import 'package:luma_tv/core/common/preference.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'controllers/app_controller.dart';
 import 'data/app_database.dart';
@@ -28,6 +28,7 @@ class LumaApp extends StatefulWidget {
 class _LumaAppState extends State<LumaApp> {
   late AppController appController;
   late ThemeController themeController;
+  late AppMenuController menuController;
 
   bool initializing = true;
 
@@ -57,6 +58,8 @@ class _LumaAppState extends State<LumaApp> {
     );
     themeController = ThemeController(prefs);
     themeController.load();
+
+    menuController = AppMenuController();
 
     setState(() => _error = null);
     try {
@@ -88,6 +91,7 @@ class _LumaAppState extends State<LumaApp> {
       providers: [
         ChangeNotifierProvider(create: (_) => appController),
         ChangeNotifierProvider(create: (_) => themeController),
+        ChangeNotifierProvider(create: (_) => menuController),
       ],
       child: const _LumaMaterialApp(),
     );

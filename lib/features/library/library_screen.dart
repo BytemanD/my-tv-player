@@ -43,8 +43,6 @@ class LibraryScreen extends StatefulWidget {
 }
 
 class _LibraryScreenState extends State<LibraryScreen> {
-  final FocusNode _focusNode = FocusNode();
-
   LibrarySort _sort = LibrarySort.recent;
   LibraryKind? _filter;
 
@@ -105,6 +103,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     const Spacer(),
                     TButton(
                       icon: Icons.refresh_rounded,
+                      autofocus: true,
                       color: Theme.of(context).colorScheme.primary,
                       onClick: controller.scanAll,
                     ),

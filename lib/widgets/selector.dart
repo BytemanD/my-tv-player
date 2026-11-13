@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:luma_tv/core/common/log.dart';
 import 'package:luma_tv/widgets/divider.dart';
 import 'package:luma_tv/widgets/space.dart';
 import 'package:luma_tv/widgets/text.dart';
@@ -27,7 +26,7 @@ class _TSelect extends State<TSelect> {
       if (widget.label != null) ...[TSubTitle(widget.label!), TDivider()],
       for (int i = 0; i < widget.items.length; i++)
         DpadFocusable(
-          // autofocus: value == i,
+          // autofocus: true,
           onFocusChange: (value) => {focusMap[i] = value, setState(() {})},
           child: TChip(
             widget.items[i],

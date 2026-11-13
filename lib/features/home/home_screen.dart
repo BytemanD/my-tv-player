@@ -100,7 +100,7 @@ class HomeScreen extends StatelessWidget {
               title: '剧集',
               entries: series,
               onOpen: (entry) => _openDetails(context, entry),
-              onSeeAll: () => _openLibrary(context, 2),
+              onSeeAll: () => {_openLibrary(context, 2)},
             ),
           ],
         ],

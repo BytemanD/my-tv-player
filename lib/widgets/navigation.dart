@@ -1,35 +1,34 @@
 import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
+import 'package:luma_tv/controllers/menu_controller.dart';
+import 'package:luma_tv/core/common/log.dart';
+import 'package:provider/provider.dart';
 
 class NavRail extends StatelessWidget {
-  final List<NavRailItem> items;
-  final int selectedIndex;
-  final void Function(int tab) onSelect;
-
-  const NavRail(
-    this.items, {
-    super.key,
-    required this.selectedIndex,
-    required this.onSelect,
-  });
+  const NavRail({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final widgets = items
-        .asMap()
-        .entries
-        .map(
-          (entry) => NavItem(
-            focusNode: entry.value.focusNode,
-            label: entry.value.label,
-            icon: entry.value.icon,
-            selectedIcon: entry.value.selectedIcon,
-            route: '/',
-            selected: selectedIndex == entry.key,
-            onSelect: () => onSelect(entry.key),
-          ),
-        )
-        .toList();
+    final menuController = context.watch<AppMenuController>();
+    final widgets = menuController.menus.asMap().entries.map((entry) {
+      final item = Focus(
+        focusNode: FocusNode(),
+        child: _NavItem(
+          label: entry.value.label,
+          icon: entry.value.icon,
+          selectedIcon: entry.value.selectedIcon,
+          route: '/',
+          selected: entry.key == menuController.index,
+          onSelect: () => {menuController.onSelect(entry.key)},
+        ),
+      );
+      if (entry.key == menuController.index) {
+        logger.i('request focus: ${entry.value.label}');
+        item.focusNode?.requestFocus();
+      }
+      return Focus(focusNode: FocusNode(), child: item);
+    }).toList();
+
     return Container(
       width: 104,
       margin: const EdgeInsets.fromLTRB(18, 18, 0, 18),
@@ -40,80 +39,18 @@ class NavRail extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 24),
-          for (NavItem item in widgets) ...[
-            Focus(focusNode: item.focusNode, child: item),
-          ],
-          // ...widgets,
-          // _NavItem(
-          //   focusNode: FocusNode(),
-          //   label: '首页',
-          //   icon: Icons.home_outlined,
-          //   selectedIcon: Icons.home_rounded,
-          //   route: '/',
-          //   selected: selectedIndex == 0,
-          //   onSelect: () => onSelect(0),
-          // ),
-          // const SizedBox(height: 12),
-          // _NavItem(
-          //   focusNode: FocusNode(),
-          //   label: '电影',
-          //   icon: Icons.movie_outlined,
-          //   selectedIcon: Icons.movie_rounded,
-          //   route: '/library/movies',
-          //   selected: selectedIndex == 1,
-          //   onSelect: () => onSelect(1),
-          // ),
-          // const SizedBox(height: 12),
-          // _NavItem(
-          //   focusNode: FocusNode(),
-          //   label: '剧集',
-          //   icon: Icons.tv_outlined,
-          //   selectedIcon: Icons.tv_rounded,
-          //   route: '/library/series',
-          //   selected: selectedIndex == 2,
-          //   onSelect: () => onSelect(2),
-          // ),
-          // const SizedBox(height: 12),
-          // _NavItem(
-          //   focusNode: FocusNode(),
-          //   label: '媒体库',
-          //   icon: Icons.video_library_outlined,
-          //   selectedIcon: Icons.video_library_rounded,
-          //   route: '/library/all',
-          //   selected: selectedIndex == 3,
-          //   onSelect: () => onSelect(3),
-          // ),
-          // const Spacer(),
-          // const SizedBox(height: 12),
-          // _NavItem(
-          //   focusNode: FocusNode(),
-          //   label: '设置',
-          //   icon: Icons.settings_outlined,
-          //   selectedIcon: Icons.settings_rounded,
-          //   route: '/settings',
-          //   selected: selectedIndex == 4,
-          //   onSelect: () => onSelect(4),
-          // ),
-          const SizedBox(height: 18),
+          ...widgets.take(widgets.length - 1),
+          const Spacer(),
+          widgets.last,
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 }
 
-class NavRailItem {
-  final focusNode = FocusNode();
-  final String label;
-  final IconData icon;
-  final IconData selectedIcon;
-
-  new({required this.label, required this.icon, required this.selectedIcon});
-}
-
-class NavItem extends StatelessWidget {
-  const NavItem({
-    super.key,
-    required this.focusNode,
+class _NavItem extends StatelessWidget {
+  const _NavItem({
     required this.label,
     required this.icon,
     required this.selectedIcon,
@@ -122,7 +59,6 @@ class NavItem extends StatelessWidget {
     required this.onSelect,
   });
 
-  final FocusNode focusNode;
   final String label;
   final IconData icon;
   final IconData selectedIcon;
@@ -134,6 +70,8 @@ class NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return DpadFocusable(
       onSelect: onSelect,
+      // autofocus: true,
+      // focusNode: focusNode,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 160),
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
