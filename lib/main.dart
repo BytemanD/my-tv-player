@@ -7,11 +7,9 @@ import 'package:media_kit/media_kit.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'app.dart';
-import 'core/luma_log.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  LumaLog.init();
 
   // sqflite only ships a mobile implementation; on desktop previews use the
   // bundled SQLite via FFI so the same repository code can run unchanged.
@@ -29,5 +27,6 @@ Future<void> main() async {
   }
 
   MediaKit.ensureInitialized();
+  // runApp(const LumaApp());
   runApp(const LumaApp());
 }

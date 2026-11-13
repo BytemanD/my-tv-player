@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
+// import 'package:luma_tv/core/luma_colors.dart';
+import 'package:luma_tv/widgets/button.dart';
+import 'package:luma_tv/widgets/divider.dart';
+import 'package:luma_tv/widgets/selector.dart';
+import 'package:luma_tv/widgets/space.dart';
+import 'package:luma_tv/widgets/text.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/app_controller.dart';
-import '../../core/theme.dart';
 import '../../data/models.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/media_cards.dart';
-import '../../widgets/tv_focusable.dart';
 import '../detail/detail_screen.dart';
 import '../sources/add_source_dialog.dart';
 
-enum LibraryKind { all, movies, series }
+enum LibraryKind {
+  all('全部'),
+  movies('电影'),
+  series("剧集");
+
+  const LibraryKind(this.label);
+  final String label;
+}
 
 enum LibrarySort {
   recent('最近添加'),
@@ -57,81 +68,43 @@ class _LibraryScreenState extends State<LibraryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.6,
-                        color: LumaColors.text,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Text(
-                        '${entries.length} 部',
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          color: LumaColors.textMuted,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    TvButton(
-                      label: '添加目录',
-                      icon: Icons.add_rounded,
-                      style: TvButtonStyle.filled,
-                      backgroundColor: LumaColors.primary.withValues(
-                        alpha: 0.40,
-                      ),
-                      compact: true,
-                      onTap: () => showAddSourceDialog(context, controller),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 22),
+                TSpace([
+                  TH1(title),
+                  TDivider(),
+                  TSubTitle('${entries.length} 部'),
+                ]),
+                TDivider(),
+
                 Row(
                   children: [
-                    if (widget.kind == LibraryKind.all) ...[
-                      for (final kind in LibraryKind.values) ...[
-                        TvChip(
-                          label: switch (kind) {
-                            LibraryKind.all => '全部',
-                            LibraryKind.movies => '电影',
-                            LibraryKind.series => '剧集',
-                          },
-                          selected: _activeFilter == kind,
-                          onTap: () => setState(() => _filter = kind),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                      const SizedBox(width: 16),
-                    ],
-                    Text(
-                      '排序',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        color: LumaColors.textMuted,
+                    if (widget.kind == LibraryKind.all)
+                      Row(
+                        children: [
+                          TSelect(
+                            LibraryKind.values.map((x) => x.label).toList(),
+                            onChanged: (index) => setState(() {
+                              _filter = LibraryKind.values[index];
+                            }),
+                          ),
+                          TDivider(),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    for (final sort in LibrarySort.values) ...[
-                      TvChip(
-                        label: sort.label,
-                        selected: _sort == sort,
-                        onTap: () => setState(() => _sort = sort),
+                    TDivider(width: 20),
+                    TSpace([
+                      TSelect(
+                        LibrarySort.values.map((x) => x.label).toList(),
+                        label: "排序",
+                        onChanged: (value) => setState(() {
+                          _sort = LibrarySort.values[value];
+                        }),
                       ),
-                      const SizedBox(width: 8),
-                    ],
+                    ]),
+
                     const Spacer(),
-                    TvIconButton(
+                    TButton(
                       icon: Icons.refresh_rounded,
-                      tooltip: '重新扫描',
-                      onTap: controller.scanAll,
+                      color: Theme.of(context).colorScheme.primary,
+                      onClick: controller.scanAll,
                     ),
                   ],
                 ),
@@ -152,7 +125,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 onScan: controller.scanAll,
                 title: '这里还没有内容',
                 description: controller.sources.isEmpty
-                    ? '添加一个媒体目录，Luma 会自动扫描视频并刮削海报。'
+                    ? '添加一个媒体目录，Luma 会自动扫描视频并刮削海报与元数据。'
                     : '没有符合当前筛选条件的条目。',
               ),
             ),
@@ -182,7 +155,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       child: PosterCard(
                         entry: entry,
                         width: cardWidth.clamp(140, 230),
-                        autofocus: index == 0,
+                        // autofocus: index == 0,
                         watchFraction: _fractionFor(controller, entry),
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute<void>(

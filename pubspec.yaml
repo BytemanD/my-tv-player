@@ -33,6 +33,9 @@ dependencies:
   # Images / UI
   cached_network_image: ^4.0.6
 
+  # TV D-pad navigation (focus regions, memory, beam traversal, remote keys)
+  dpad: ^3.3.0
+
   # Utils
   collection: ^1.19.1
   intl: ^0.20.3
@@ -40,6 +43,7 @@ dependencies:
   sqflite_common_ffi: ^2.4.5
   package_info_plus: ^10.2.2
   flutter_dotenv: ^5.2.1
+  logger: ^2.8.0
 
 dev_dependencies:
   flutter_test:

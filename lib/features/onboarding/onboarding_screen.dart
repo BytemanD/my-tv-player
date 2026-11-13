@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:luma_tv/widgets/button.dart';
+import 'package:luma_tv/widgets/text.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/app_controller.dart';
-import '../../core/theme.dart';
-import '../../widgets/logo.dart';
-import '../../widgets/tv_focusable.dart';
 import '../sources/add_source_dialog.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -101,7 +100,11 @@ class _OnboardingBackground extends StatelessWidget {
         gradient: RadialGradient(
           center: Alignment(-0.35, -0.5),
           radius: 1.25,
-          colors: [Color(0xFF15130D), Color(0xFF0A0B0F), LumaColors.background],
+          colors: [
+            Theme.of(context).colorScheme.primary,
+            Theme.of(context).colorScheme.surface,
+            Theme.of(context).colorScheme.secondary,
+          ],
           stops: [0, 0.5, 1],
         ),
       ),
@@ -117,7 +120,7 @@ class _OnboardingBackground extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    LumaColors.accent.withValues(alpha: 0.10),
+                    const Color(0xFFE9C57E).withValues(alpha: 0.10),
                     Colors.transparent,
                   ],
                 ),
@@ -159,30 +162,15 @@ class _CopyColumn extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const LumaLogo(fontSize: 20, markSize: 30),
         const SizedBox(height: 38),
-        Text(
-          '把影院，\n留在家里。',
-          style: TextStyle(
-            fontFamily: LumaTheme.displayFont,
-            fontSize: 64,
-            height: 1.02,
-            fontWeight: FontWeight.w600,
-            letterSpacing: -1.4,
-            color: LumaColors.text,
-          ),
-        ),
+        TH0('把影院，\n留在家里。'),
         const SizedBox(height: 18),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
-          child: Text(
+          child: const Text(
             '选择本地文件夹或外接 USB 磁盘，Luma 会递归扫描视频、识别电影与剧集，'
             '再从 TMDB 取回海报、评分与简介，整理成一面安静的海报墙。',
-            style: TextStyle(
-              fontSize: 15,
-              height: 1.75,
-              color: LumaColors.textDim,
-            ),
+            style: TextStyle(fontSize: 15, height: 1.75),
           ),
         ),
         const SizedBox(height: 30),
@@ -212,30 +200,35 @@ class _CopyColumn extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             if (!controller.hasStorageAccess)
-              TvButton(
+              TButton(
                 label: '授予文件访问权限',
                 icon: Icons.lock_open_rounded,
-                style: TvButtonStyle.outline,
-                onTap: controller.requestStorageAccess,
+                onClick: controller.requestStorageAccess,
               ),
-            TvButton(
+            // _actionButton(
+            //   label: '授予文件访问权限',
+            //   icon: Icons.lock_open_rounded,
+            //   autofocus: true,
+            //   onTap: controller.requestStorageAccess,
+            //   outline: true,
+            // ),
+            TButton(
               label: hasSources ? '再添加一个目录' : '添加媒体目录',
               icon: Icons.folder_open_rounded,
-              autofocus: true,
-              onTap: () => showAddSourceDialog(context, controller),
+              onClick: () => showAddSourceDialog(context, controller),
             ),
             if (hasSources)
-              TvButton(
+              TButton(
                 label: '进入 Luma',
                 icon: Icons.arrow_forward_rounded,
-                style: TvButtonStyle.filled,
-                onTap: controller.completeOnboarding,
+                onClick: controller.completeOnboarding,
               )
             else
-              TvButton(
+              TButton(
                 label: '先看看界面',
-                style: TvButtonStyle.ghost,
-                onTap: controller.completeOnboarding,
+                // color: Theme.of(context).colorScheme.secondary,
+                icon: Icons.arrow_forward_rounded,
+                onClick: controller.completeOnboarding,
               ),
           ],
         ),
@@ -248,15 +241,15 @@ class _CopyColumn extends StatelessWidget {
                   : Icons.info_outline_rounded,
               size: 15,
               color: controller.hasStorageAccess
-                  ? LumaColors.success
-                  : LumaColors.textMuted,
+                  ? Colors.green
+                  : Colors.white70,
             ),
             const SizedBox(width: 7),
             Text(
               controller.hasStorageAccess
                   ? '文件访问权限已就绪'
                   : '稍后也可以在「设置 → 媒体来源」中授权',
-              style: TextStyle(fontSize: 11.5, color: LumaColors.textMuted),
+              style: const TextStyle(fontSize: 11.5),
             ),
           ],
         ),
@@ -282,6 +275,7 @@ class _Step extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = const Color(0xFFE9C57E);
     return Padding(
       padding: EdgeInsets.only(bottom: last ? 0 : 16),
       child: Row(
@@ -292,20 +286,16 @@ class _Step extends StatelessWidget {
             height: 34,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: done ? LumaColors.accentSoft : Colors.transparent,
+              color: done ? accent.withValues(alpha: 0.15) : Colors.transparent,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: done ? LumaColors.accent : LumaColors.line,
-              ),
+              border: Border.all(color: done ? accent : Colors.white24),
             ),
             child: Text(
               index,
-              style: TextStyle(
-                fontFamily: LumaTheme.displayFont,
+              style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.6,
-                color: done ? LumaColors.accent : LumaColors.textMuted,
               ),
             ),
           ),
@@ -316,20 +306,15 @@ class _Step extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w500,
-                    color: LumaColors.text,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   detail,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    height: 1.45,
-                    color: LumaColors.textMuted,
-                  ),
+                  style: const TextStyle(fontSize: 12.5, height: 1.45),
                 ),
               ],
             ),
@@ -361,10 +346,14 @@ class _PosterStudy extends StatelessWidget {
             top: height * 0.16,
             child: Transform.rotate(
               angle: -0.075,
-              child: const _MockPoster(
+              child: _MockPoster(
                 width: 152,
                 height: 228,
-                colors: [Color(0xFF1C2B38), Color(0xFF0E141B)],
+                colors: [
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.primaryFixed,
+                  Theme.of(context).colorScheme.surface,
+                ],
               ),
             ),
           ),
@@ -373,10 +362,13 @@ class _PosterStudy extends StatelessWidget {
             top: height * 0.10,
             child: Transform.rotate(
               angle: 0.085,
-              child: const _MockPoster(
+              child: _MockPoster(
                 width: 152,
                 height: 228,
-                colors: [Color(0xFF33271A), Color(0xFF151009)],
+                colors: [
+                  Theme.of(context).colorScheme.secondary,
+                  Theme.of(context).colorScheme.secondaryFixed,
+                ],
               ),
             ),
           ),
@@ -385,23 +377,27 @@ class _PosterStudy extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: LumaColors.accent, width: 2),
+                // border: Border.all(color: const Color(0xFFE9C57E), width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.65),
+                    // color: Colors.black.withValues(alpha: 0.65),
                     blurRadius: 46,
-                    offset: const Offset(0, 24),
+                    offset: const Offset(0, 4),
                   ),
                   BoxShadow(
-                    color: LumaColors.accent.withValues(alpha: 0.16),
+                    color: const Color(0xFFE9C57E).withValues(alpha: 0.16),
                     blurRadius: 60,
                   ),
                 ],
               ),
-              child: const _MockPoster(
+              child: _MockPoster(
                 width: 176,
                 height: 264,
-                colors: [Color(0xFF4A3A1E), Color(0xFF12100B)],
+                colors: [
+                  Theme.of(context).colorScheme.tertiary,
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
+                  Theme.of(context).colorScheme.tertiaryFixed,
+                ],
                 label: 'LUMA',
               ),
             ),
@@ -412,25 +408,20 @@ class _PosterStudy extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
               decoration: BoxDecoration(
-                color: const Color(0xE612141A),
                 borderRadius: BorderRadius.circular(100),
-                border: Border.all(color: LumaColors.line),
+                border: Border.all(color: Colors.white24),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.auto_awesome_rounded,
-                    size: 13,
-                    color: LumaColors.accent,
-                  ),
-                  SizedBox(width: 6),
+                  const Icon(Icons.auto_awesome_rounded, size: 13),
+                  const SizedBox(width: 6),
                   Text(
                     '自动识别 · 自动刮削',
                     style: TextStyle(
                       fontSize: 10.5,
                       letterSpacing: 0.3,
-                      color: LumaColors.textDim,
+                      color: Theme.of(context).colorScheme.primaryFixedDim,
                     ),
                   ),
                 ],
@@ -483,15 +474,21 @@ class _MockPoster extends StatelessWidget {
           ),
           Center(
             child: label == null
-                ? Icon(
-                    Icons.play_circle_outline_rounded,
-                    size: 30,
-                    color: Colors.white.withValues(alpha: 0.18),
-                  )
-                : LumaWordmark(
-                    fontSize: 15,
-                    letterSpacing: 3.4,
-                    color: LumaColors.accent.withValues(alpha: 0.9),
+                ? const Icon(Icons.play_circle_outline_rounded, size: 30)
+                : Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      // color: const Color(0xFFE9C57E),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      label ?? '',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        letterSpacing: 3.4,
+                        // color: Color(0xFF12141A),
+                      ),
+                    ),
                   ),
           ),
         ],

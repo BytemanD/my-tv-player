@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:luma_tv/controllers/theme_controller.dart';
+import 'package:luma_tv/widgets/button.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:path/path.dart' as p;
@@ -10,7 +12,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../controllers/app_controller.dart';
 import '../../core/formatters.dart';
-import '../../core/theme.dart';
+// import '../../core/theme.dart';
 import '../../data/models.dart';
 import '../../data/settings_service.dart';
 import '../../widgets/tv_focusable.dart';
@@ -763,7 +765,7 @@ class _PlayerScreenState extends State<PlayerScreen>
           onPointerHover: (_) => _showControls(),
           child: Focus(
             focusNode: _playerFocus,
-            autofocus: true,
+            // autofocus: true,
             onKeyEvent: _onKey,
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
@@ -807,7 +809,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                   if (_loading)
                     Center(
                       child: CircularProgressIndicator(
-                        color: LumaColors.accent,
+                        color: Theme.of(context).colorScheme.secondary,
                         strokeWidth: 2.5,
                       ),
                     ),
@@ -854,14 +856,16 @@ class _PlayerScreenState extends State<PlayerScreen>
                             decoration: BoxDecoration(
                               color: Colors.black.withValues(alpha: 0.72),
                               borderRadius: BorderRadius.circular(100),
-                              border: Border.all(color: LumaColors.accentSoft),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
                             ),
                             child: Text(
                               _seekFlash!,
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w500,
-                                color: LumaColors.accent,
+                                color: Theme.of(context).colorScheme.secondary,
                               ),
                             ),
                           ),
@@ -883,7 +887,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                             decoration: BoxDecoration(
                               color: Colors.black.withValues(alpha: 0.72),
                               borderRadius: BorderRadius.circular(100),
-                              border: Border.all(color: LumaColors.accentSoft),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -891,7 +897,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                                 Icon(
                                   Icons.volume_up_rounded,
                                   size: 20,
-                                  color: LumaColors.accent,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .secondary,
                                 ),
                                 const SizedBox(width: 10),
                                 Text(
@@ -899,7 +907,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w500,
-                                    color: LumaColors.accent,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .secondary,
                                   ),
                                 ),
                               ],
@@ -949,11 +959,12 @@ class _PlayerScreenState extends State<PlayerScreen>
                 padding: const EdgeInsets.fromLTRB(46, 38, 46, 0),
                 child: Row(
                   children: [
-                    TvIconButton(
+                    TButton(
                       icon: Icons.arrow_back_rounded,
-                      tooltip: '返回',
                       size: 40,
-                      onTap: () {
+                      color: Theme.of(context).colorScheme.primary
+                          .withValues(alpha: 0.5),
+                      onClick: () {
                         _markInteraction();
                         _exit();
                       },
@@ -988,15 +999,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                         ],
                       ),
                     ),
-                    TvButton(
+                    TButton(
                       icon: Icons.more_vert_rounded,
-                      style: TvButtonStyle.filled,
-                      backgroundColor: LumaColors.primary.withValues(
-                        alpha: 0.40,
-                      ),
-                      compact: true,
-                      square: true,
-                      onTap: () {
+                      onClick: () {
                         _markInteraction();
                         _openPanel();
                       },
@@ -1011,7 +1016,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                   width: 34,
                   height: 34,
                   child: CircularProgressIndicator(
-                    color: LumaColors.accent,
+                    color: Theme.of(context).colorScheme.secondary,
                     strokeWidth: 2.4,
                   ),
                 ),
@@ -1081,51 +1086,50 @@ class _PlayerScreenState extends State<PlayerScreen>
                         '  /  ',
                         style: TextStyle(
                           fontSize: 13,
-                          color: LumaColors.textMuted,
+                          // color: Theme.of(context).colorScheme.textMuted,
                         ),
                       ),
                       Text(
                         formatClock(_duration),
                         style: TextStyle(
                           fontSize: 13,
-                          color: LumaColors.textMuted,
+                          // color: Theme.of(context).colorScheme.textMuted,
                           fontFeatures: [FontFeature.tabularFigures()],
                         ),
                       ),
                       const SizedBox(width: 14),
-                      TvIconButton(
+                      TButton(
                         icon: _completed
                             ? Icons.replay_rounded
                             : _playing
                             ? Icons.pause_rounded
                             : Icons.play_arrow_rounded,
-                        tooltip: _completed
-                            ? '重播'
-                            : _playing
-                            ? '暂停'
-                            : '播放',
-                        size: 40,
-                        onTap: () {
+                        color: Theme.of(context).colorScheme.primary
+                            .withValues(alpha: 0.5),
+                        onClick: () {
                           _markInteraction();
                           _togglePlay();
                         },
                       ),
                       const SizedBox(width: 24),
-                      TvChip(
+                      TButton(
                         label: _speed == _speed.roundToDouble()
                             ? '${_speed.toStringAsFixed(0)}x'
                             : '${_speed.toStringAsFixed(2)}x',
-                        selected: _speed != 1.0,
-                        onTap: () {
+                        color: Theme.of(context).colorScheme.primary
+                            .withValues(alpha: _speed != 1 ? 0.8 : 0.5),
+                        onClick: () {
                           _markInteraction();
                           _cycleSpeed();
                         },
                       ),
                       const SizedBox(width: 8),
-                      TvChip(
+                      TButton(
                         label: _fit == BoxFit.contain ? '适应画面' : '铺满屏幕',
-                        selected: _fit == BoxFit.cover,
-                        onTap: () {
+                        color: Theme.of(context).colorScheme.primary.withValues(
+                          alpha: _fit == BoxFit.cover ? 0.8 : 0.5,
+                        ),
+                        onClick: () {
                           _markInteraction();
                           _toggleFit();
                         },
@@ -1192,10 +1196,14 @@ class _PlayerScreenState extends State<PlayerScreen>
             margin: const EdgeInsets.only(bottom: 5),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: focused ? LumaColors.surfaceHigh : Colors.transparent,
+              color: focused
+                  ? Theme.of(context).colorScheme.surfaceContainerHigh
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: focused ? LumaColors.accent : Colors.transparent,
+                color: focused
+                    ? Theme.of(context).colorScheme.secondary
+                    : Colors.transparent,
               ),
             ),
             child: Row(
@@ -1206,7 +1214,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                       ? Icon(
                           Icons.check_rounded,
                           size: 17,
-                          color: LumaColors.primary,
+                          color: Theme.of(context).colorScheme.primary,
                         )
                       : null,
                 ),
@@ -1386,12 +1394,16 @@ class _PlayerScreenState extends State<PlayerScreen>
           () {}, // Absorb taps inside the panel so they don't reach the scrim.
       child: FocusScope(
         node: _panelFocus,
-        autofocus: true,
+        // autofocus: true,
         child: Container(
           decoration: BoxDecoration(
-            color: LumaColors.primary.withValues(alpha: 0.70),
+            color: Theme.of(context).colorScheme.primary
+                .withValues(alpha: 0.70),
             border: Border(
-              left: BorderSide(color: LumaColors.primaryDeep, width: 1),
+              left: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 1,
+              ),
             ),
           ),
           child: Column(
@@ -1408,7 +1420,8 @@ class _PlayerScreenState extends State<PlayerScreen>
                         unselectedLabelColor: Colors.white.withValues(
                           alpha: 0.7,
                         ),
-                        indicatorColor: LumaColors.accent,
+                        indicatorColor: Theme.of(context).colorScheme.primary
+                            .withValues(alpha: 0.7),
                         indicatorWeight: 3,
                         labelStyle: TextStyle(
                           fontSize: 13,
@@ -1575,7 +1588,7 @@ class _ProgressBarState extends State<_ProgressBar> {
                     child: Container(
                       height: 6,
                       decoration: BoxDecoration(
-                        color: LumaColors.accent,
+                        color: Theme.of(context).colorScheme.secondary,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -1586,7 +1599,7 @@ class _ProgressBarState extends State<_ProgressBar> {
                       width: 12,
                       height: 12,
                       decoration: BoxDecoration(
-                        color: LumaColors.accent,
+                        color: Theme.of(context).colorScheme.secondary,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -1615,22 +1628,22 @@ class _ErrorOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: Colors.black.withValues(alpha: 0.82),
+      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.82),
       child: Center(
         child: Container(
           width: 520,
           padding: const EdgeInsets.all(30),
           decoration: BoxDecoration(
-            color: LumaColors.surface,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: LumaColors.line),
+            border: Border.all(color: Theme.of(context).colorScheme.secondary),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 Icons.error_outline_rounded,
-                color: LumaColors.danger,
+                color: Theme.of(context).extension<SemanticColors>()?.danger,
                 size: 36,
               ),
               const SizedBox(height: 14),
@@ -1647,25 +1660,20 @@ class _ErrorOverlay extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   height: 1.5,
-                  color: LumaColors.textMuted,
+                  // color: LumaColors.textMuted,
                 ),
               ),
               const SizedBox(height: 22),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  TvButton(
-                    label: '返回',
-                    style: TvButtonStyle.outline,
-                    compact: true,
-                    onTap: onBack,
-                  ),
+                  TButton(label: '返回', onClick: onBack),
                   const SizedBox(width: 12),
-                  TvButton(
+                  TButton(
                     label: '重试',
-                    autofocus: true,
-                    compact: true,
-                    onTap: onRetry,
+                    // autofocus: true,
+                    // compact: true,
+                    onClick: onRetry,
                   ),
                 ],
               ),

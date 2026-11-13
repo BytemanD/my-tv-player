@@ -1,8 +1,7 @@
 import 'dart:async';
 
-import 'package:logging/logging.dart';
+import 'package:luma_tv/core/common/log.dart';
 
-import '../../core/luma_log.dart';
 import '../media_repository.dart';
 import '../models.dart';
 import '../scanner/nfo_parser.dart';
@@ -63,7 +62,6 @@ class MetadataScraper {
   MetadataScraper(this._repository);
 
   final MediaRepository _repository;
-  final Logger _log = LumaLog.of('Luma.Scrape');
   bool _cancelled = false;
   bool _fatal = false;
   String? _fatalMessage;
@@ -135,26 +133,26 @@ class MetadataScraper {
     Future<void> runMovie(MediaItem movie) async {
       if (_cancelled || _fatal) return;
       emit(movie.title);
-      _log.info('开始：${movie.title}');
+      logger.i('开始：${movie.title}');
       try {
         final ok = await _scrapeMovie(movie, tmdbClient, doubanClient);
         if (ok) {
           succeeded++;
-          _log.info('完成：${movie.title}');
+          logger.i('完成：${movie.title}');
         } else {
           failed++;
           errors.add('${movie.title}：未找到匹配条目');
-          _log.info('失败：${movie.title} - 未找到匹配条目');
+          logger.i('失败：${movie.title} - 未找到匹配条目');
         }
       } on TmdbException catch (error) {
         if (error.statusCode == 401) {
           _fatal = true;
           _fatalMessage = error.message;
-          _log.info('致命错误：${error.message}');
+          logger.i('致命错误：${error.message}');
         } else {
           failed++;
           errors.add('${movie.title}：${error.message}');
-          _log.info('失败：${movie.title} - ${error.message}');
+          logger.i('失败：${movie.title} - ${error.message}');
           await _repository.setScrapeState(
             movie.id!,
             ScrapeState.failed,
@@ -164,7 +162,7 @@ class MetadataScraper {
       } catch (error) {
         failed++;
         errors.add('${movie.title}：${_short(error)}');
-        _log.info('失败：${movie.title} - ${_short(error)}');
+        logger.i('失败：${movie.title} - ${_short(error)}');
         await _repository.setScrapeState(
           movie.id!,
           ScrapeState.failed,
@@ -183,26 +181,26 @@ class MetadataScraper {
           ? lead.seriesTitle!
           : lead.title;
       emit(label);
-      _log.info('开始：$label');
+      logger.i('开始：$label');
       try {
         final ok = await _scrapeSeries(episodes, tmdbClient, doubanClient);
         if (ok) {
           succeeded++;
-          _log.info('完成：$label');
+          logger.i('完成：$label');
         } else {
           failed++;
           errors.add('$label：未找到匹配条目');
-          _log.info('失败：$label - 未找到匹配条目');
+          logger.i('失败：$label - 未找到匹配条目');
         }
       } on TmdbException catch (error) {
         if (error.statusCode == 401) {
           _fatal = true;
           _fatalMessage = error.message;
-          _log.info('致命错误：${error.message}');
+          logger.i('致命错误：${error.message}');
         } else {
           failed++;
           errors.add('$label：${error.message}');
-          _log.info('失败：$label - ${error.message}');
+          logger.i('失败：$label - ${error.message}');
           await _repository.setSeriesScrapeState(
             lead.seriesKey ?? 'media:${lead.id}',
             ScrapeState.failed,
@@ -212,7 +210,7 @@ class MetadataScraper {
       } catch (error) {
         failed++;
         errors.add('$label：${_short(error)}');
-        _log.info('失败：$label - ${_short(error)}');
+        logger.i('失败：$label - ${_short(error)}');
         await _repository.setSeriesScrapeState(
           lead.seriesKey ?? 'media:${lead.id}',
           ScrapeState.failed,
@@ -233,11 +231,11 @@ class MetadataScraper {
     tmdbClient.dispose();
     doubanClient.dispose();
 
-    _log.info('完成：成功 $succeeded，失败 $failed，共 $total');
+    logger.i('完成：成功 $succeeded，失败 $failed，共 $total');
     if (errors.isNotEmpty) {
-      _log.info('错误列表：');
+      logger.i('错误列表：');
       for (final e in errors.take(20)) {
-        _log.info('  - $e');
+        logger.i('  - $e');
       }
     }
 
@@ -292,7 +290,7 @@ class MetadataScraper {
     final title = nfo?.preferredTitle ?? movie.title;
     final year = nfo?.year ?? movie.year;
 
-    _log.info(
+    logger.i(
       '搜索电影：$title (年份：$year, 语言：${tmdbClient.language}, forceRescan：$forceRescan)',
     );
 
@@ -303,38 +301,38 @@ class MetadataScraper {
       if (!forceRescan && nfo?.tmdbId != null) {
         final nfoTmdbId = nfo!.tmdbId!;
         details = await tmdbClient.movieDetails(nfoTmdbId);
-        _log.info('按TMDB ID直接获取：$nfoTmdbId -> ${details.title}');
+        logger.i('按TMDB ID直接获取：$nfoTmdbId -> ${details.title}');
       } else {
         if (forceRescan && nfo?.tmdbId != null) {
           final nfoTmdbId = nfo!.tmdbId;
-          _log.info('强制重新搜索，忽略 NFO 中的 TMDB ID：$nfoTmdbId');
+          logger.i('强制重新搜索，忽略 NFO 中的 TMDB ID：$nfoTmdbId');
         }
         final candidates = await tmdbClient.searchMovie(title, year: year);
-        _log.info('TMDB 搜索结果：${candidates.length} 个候选');
+        logger.i('TMDB 搜索结果：${candidates.length} 个候选');
         for (final c in candidates.take(5)) {
-          _log.info(
+          logger.i(
             '  候选：id=${c.id} title="${c.title}" original="${c.originalTitle}" year=${c.year} popularity=${c.popularity.toStringAsFixed(1)}',
           );
         }
         final match = TmdbMatcher.best(candidates, title: title, year: year);
         if (match != null) {
-          _log.info(
+          logger.i(
             'TMDB 匹配成功：id=${match.id} title="${match.title}" year=${match.year}',
           );
           details = await tmdbClient.movieDetails(match.id);
-          _log.info(
+          logger.i(
             'TMDB 详情标题：${details.title} (original: ${details.originalTitle})',
           );
         } else {
-          _log.info('TMDB 匹配失败：没有达到阈值的候选，尝试豆瓣');
+          logger.i('TMDB 匹配失败：没有达到阈值的候选，尝试豆瓣');
         }
       }
     } on TmdbException catch (error) {
       tmdbError = error;
-      _log.info('TMDB 请求失败，尝试豆瓣：${error.message}');
+      logger.i('TMDB 请求失败，尝试豆瓣：${error.message}');
     } catch (error) {
       tmdbOtherError = error;
-      _log.info('TMDB 请求异常，尝试豆瓣：${_short(error)}');
+      logger.i('TMDB 请求异常，尝试豆瓣：${_short(error)}');
     }
 
     // TMDB 失败（网络错误、超时、API Key 无效、详情获取失败等）
@@ -410,7 +408,7 @@ class MetadataScraper {
     required DoubanClient doubanClient,
   }) async {
     if (doubanClient.apiKey.isEmpty) {
-      _log.info('豆瓣 API Key 未配置，跳过豆瓣刮削');
+      logger.i('豆瓣 API Key 未配置，跳过豆瓣刮削');
       return false;
     }
     try {
@@ -418,9 +416,9 @@ class MetadataScraper {
         title,
         year: year,
       );
-      _log.info('豆瓣搜索结果：${doubanCandidates.length} 个候选');
+      logger.i('豆瓣搜索结果：${doubanCandidates.length} 个候选');
       for (final c in doubanCandidates.take(5)) {
-        _log.info(
+        logger.i(
           '  豆瓣候选：id=${c.id} title="${c.title}" original="${c.originalTitle}" year=${c.year} rating=${c.rating}',
         );
       }
@@ -430,18 +428,18 @@ class MetadataScraper {
         year: year,
       );
       if (doubanMatch == null) {
-        _log.info('豆瓣匹配失败：没有达到阈值的候选');
+        logger.i('豆瓣匹配失败：没有达到阈值的候选');
         return false;
       }
-      _log.info(
+      logger.i(
         '豆瓣匹配成功：id=${doubanMatch.id} title="${doubanMatch.title}" year=${doubanMatch.year}',
       );
       final doubanDetails = await _doubanDetails(doubanClient, doubanMatch);
       await _applyDoubanMetadata(movie.id!, doubanDetails);
-      _log.info('豆瓣刮削完成：${movie.title}');
+      logger.i('豆瓣刮削完成：${movie.title}');
       return true;
     } catch (e) {
-      _log.info('豆瓣异常：$e');
+      logger.i('豆瓣异常：$e');
       return false;
     }
   }
@@ -467,7 +465,7 @@ class MetadataScraper {
     final year = nfo?.year ?? lead.year;
     final oldKey = lead.seriesKey ?? 'media:${lead.id}';
 
-    _log.info(
+    logger.i(
       '搜索剧集：$title (年份：$year, 语言：${tmdbClient.language}, forceRescan：$forceRescan)',
     );
 
@@ -478,38 +476,36 @@ class MetadataScraper {
       if (!forceRescan && nfo?.tmdbId != null) {
         final nfoTmdbId = nfo!.tmdbId!;
         show = await tmdbClient.tvDetails(nfoTmdbId);
-        _log.info('按TMDB ID直接获取剧集：$nfoTmdbId -> ${show.title}');
+        logger.i('按TMDB ID直接获取剧集：$nfoTmdbId -> ${show.title}');
       } else {
         if (forceRescan && nfo?.tmdbId != null) {
           final nfoTmdbId = nfo!.tmdbId;
-          _log.info('强制重新搜索剧集，忽略 NFO 中的 TMDB ID：$nfoTmdbId');
+          logger.i('强制重新搜索剧集，忽略 NFO 中的 TMDB ID：$nfoTmdbId');
         }
         final candidates = await tmdbClient.searchTv(title, year: year);
-        _log.info('TMDB 搜索结果：${candidates.length} 个候选');
+        logger.i('TMDB 搜索结果：${candidates.length} 个候选');
         for (final c in candidates.take(5)) {
-          _log.info(
+          logger.i(
             '  候选：id=${c.id} title="${c.title}" original="${c.originalTitle}" year=${c.year} popularity=${c.popularity.toStringAsFixed(1)}',
           );
         }
         final match = TmdbMatcher.best(candidates, title: title, year: year);
         if (match != null) {
-          _log.info(
+          logger.i(
             'TMDB 匹配成功：id=${match.id} title="${match.title}" year=${match.year}',
           );
           show = await tmdbClient.tvDetails(match.id);
-          _log.info(
-            'TMDB 详情标题：${show.title} (original: ${show.originalTitle})',
-          );
+          logger.i('TMDB 详情标题：${show.title} (original: ${show.originalTitle})');
         } else {
-          _log.info('TMDB 匹配失败：没有达到阈值的候选，尝试豆瓣');
+          logger.i('TMDB 匹配失败：没有达到阈值的候选，尝试豆瓣');
         }
       }
     } on TmdbException catch (error) {
       tmdbError = error;
-      _log.info('TMDB 请求失败，尝试豆瓣：${error.message}');
+      logger.i('TMDB 请求失败，尝试豆瓣：${error.message}');
     } catch (error) {
       tmdbOtherError = error;
-      _log.info('TMDB 请求异常，尝试豆瓣：${_short(error)}');
+      logger.i('TMDB 请求异常，尝试豆瓣：${_short(error)}');
     }
 
     // TMDB 请求失败或无匹配结果时，都尝试豆瓣。
@@ -548,7 +544,7 @@ class MetadataScraper {
       // applySeriesMetadata 会把剧集信息写到该 series_key 下的所有分集，
       // setSeriesScrapeState 统一标记为已完成。
       await _repository.setSeriesScrapeState(newKey, ScrapeState.done);
-      _log.info('剧集刮削完成（仅剧集级别）：${show.title}，共 ${episodes.length} 集');
+      logger.i('剧集刮削完成（仅剧集级别）：${show.title}，共 ${episodes.length} 集');
       return true;
     }
 
@@ -595,14 +591,14 @@ class MetadataScraper {
     required DoubanClient doubanClient,
   }) async {
     if (doubanClient.apiKey.isEmpty) {
-      _log.info('豆瓣 API Key 未配置，跳过豆瓣刮削');
+      logger.i('豆瓣 API Key 未配置，跳过豆瓣刮削');
       return false;
     }
     try {
       final doubanCandidates = await doubanClient.searchTv(title, year: year);
-      _log.info('豆瓣搜索结果：${doubanCandidates.length} 个候选');
+      logger.i('豆瓣搜索结果：${doubanCandidates.length} 个候选');
       for (final c in doubanCandidates.take(5)) {
-        _log.info(
+        logger.i(
           '  豆瓣候选：id=${c.id} title="${c.title}" original="${c.originalTitle}" year=${c.year} rating=${c.rating}',
         );
       }
@@ -612,19 +608,19 @@ class MetadataScraper {
         year: year,
       );
       if (doubanMatch == null) {
-        _log.info('豆瓣匹配失败：没有达到阈值的候选');
+        logger.i('豆瓣匹配失败：没有达到阈值的候选');
         return false;
       }
-      _log.info(
+      logger.i(
         '豆瓣匹配成功：id=${doubanMatch.id} title="${doubanMatch.title}" year=${doubanMatch.year}',
       );
       final doubanDetails = await _doubanDetails(doubanClient, doubanMatch);
       await _applyDoubanSeriesMetadata(oldKey, doubanDetails);
       await _repository.setSeriesScrapeState(oldKey, ScrapeState.done);
-      _log.info('豆瓣剧集刮削完成：$title');
+      logger.i('豆瓣剧集刮削完成：$title');
       return true;
     } catch (e) {
-      _log.info('豆瓣异常：$e');
+      logger.i('豆瓣异常：$e');
       return false;
     }
   }
@@ -640,16 +636,16 @@ class MetadataScraper {
       final details = await client.subject(match.id);
       if (details != null) {
         final summaryLength = details.overview?.length ?? 0;
-        _log.info(
+        logger.i(
           '豆瓣详情：id=${details.id} 简介=$summaryLength字 '
           '集数=${details.episodeCount ?? '-'} 别名=${details.aka?.join('/') ?? '-'}',
         );
         // 详情接口偶尔缺少 images，用搜索结果补上海报/背景图。
         return details.mergedWith(match);
       }
-      _log.warning('豆瓣详情为空，使用搜索结果：id=${match.id}');
+      logger.w('豆瓣详情为空，使用搜索结果：id=${match.id}');
     } catch (error) {
-      _log.warning('豆瓣详情获取失败，使用搜索结果：$error');
+      logger.w('豆瓣详情获取失败，使用搜索结果：$error');
     }
     return match;
   }

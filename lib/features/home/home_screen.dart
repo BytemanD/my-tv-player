@@ -1,12 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:luma_tv/widgets/text.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/app_controller.dart';
 import '../../core/formatters.dart';
-import '../../core/theme.dart';
 import '../../data/models.dart';
+import '../../widgets/button.dart';
 import '../../widgets/artwork.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/shelf.dart';
@@ -84,7 +85,7 @@ class HomeScreen extends StatelessWidget {
             onOpen: (entry) => _openDetails(context, entry),
             onSeeAll: () => _openLibrary(context, 3),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
           if (movies.isNotEmpty) ...[
             MediaShelf(
               title: '电影',
@@ -262,27 +263,22 @@ class _HeroCarouselState extends State<_HeroCarousel> {
               DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: [
-                      LumaColors.background,
-                      LumaColors.background.withValues(alpha: 0.77),
-                      LumaColors.background.withValues(alpha: 0.20),
-                      LumaColors.background.withValues(alpha: 0),
-                    ],
-                    stops: const [0, 0.36, 0.7, 1],
+                    begin: Alignment.bottomLeft,
+                    end: Alignment.topRight,
+                    colors: [Colors.black87, Colors.transparent],
+                    stops: const [0, 0.1],
                   ),
                 ),
               ),
               DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+                    begin: Alignment.bottomLeft,
+                    end: Alignment.topRight,
                     colors: [
-                      LumaColors.background.withValues(alpha: 0),
-                      LumaColors.background.withValues(alpha: 0.40),
-                      LumaColors.background.withValues(alpha: 0.90),
+                      Colors.black87,
+                      Colors.transparent,
+                      Colors.transparent,
                     ],
                     stops: const [0.35, 0.72, 1],
                   ),
@@ -294,12 +290,12 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                   top: 0,
                   bottom: 0,
                   child: Center(
-                    child: TvIconButton(
+                    child: TButton(
                       icon: Icons.chevron_left_rounded,
-                      tooltip: '上一个',
+                      color: Theme.of(context).colorScheme.primary
+                          .withValues(alpha: 0.5),
                       size: 40,
-                      iconSize: 20,
-                      onTap: () => _next(-1),
+                      onClick: () => _next(-1),
                     ),
                   ),
                 ),
@@ -308,12 +304,12 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                   top: 0,
                   bottom: 0,
                   child: Center(
-                    child: TvIconButton(
+                    child: TButton(
                       icon: Icons.chevron_right_rounded,
-                      tooltip: '下一个',
+                      color: Theme.of(context).colorScheme.primary
+                          .withValues(alpha: 0.5),
                       size: 40,
-                      iconSize: 20,
-                      onTap: () => _next(),
+                      onClick: () => _next(),
                     ),
                   ),
                 ),
@@ -326,18 +322,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                   children: [
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 900),
-                      child: Text(
-                        current.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 52,
-                          height: 1.02,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: -1.0,
-                          color: LumaColors.text,
-                        ),
-                      ),
+                      child: TH0(current.title, color: Colors.white),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -346,76 +331,49 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                           Icon(
                             Icons.star_rounded,
                             size: 17,
-                            color: LumaColors.primary,
+                            color: Colors.amber,
                           ),
                           const SizedBox(width: 5),
-                          Text(
+                          TSubTitle(
                             formatRating(current.rating),
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: LumaColors.primary,
-                            ),
+                            color: Colors.white,
                           ),
                           const _Dot(),
                         ],
                         if (current.year != null) ...[
-                          Text(
-                            '${current.year}',
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              color: LumaColors.textDim,
-                            ),
-                          ),
+                          TSubTitle('${current.year}', color: Colors.white),
                           const _Dot(),
                         ],
-                        Text(
+                        TSubTitle(
                           current.isSeries
                               ? '${current.series!.seasons.length} 季 · ${current.series!.episodeCount} 集'
                               : formatRuntime(current.runtime),
-                          style: TextStyle(
-                            fontSize: 13.5,
-                            color: LumaColors.textDim,
-                          ),
+                          color: Colors.white,
                         ),
                         if (current.genres.isNotEmpty) ...[
                           const _Dot(),
-                          Text(
+                          TSubTitle(
                             current.genres.take(2).join(' / '),
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              color: LumaColors.textDim,
-                            ),
+                            color: Colors.white,
                           ),
                         ],
                       ],
                     ),
                     const SizedBox(height: 14),
                     if (current.overview != null)
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 780),
-                        child: Text(
-                          current.overview!,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 13.5,
-                            height: 1.6,
-                            color: LumaColors.textDim,
-                          ),
-                        ),
+                      TText(
+                        current.overview ?? "暂无简介",
+                        color: Colors.white,
+                        maxLines: 3,
+                        maxWidth: 780,
                       ),
                     const SizedBox(height: 24),
                     Row(
                       children: [
-                        TvButton(
+                        TButton(
                           label: isContinue ? '继续观看' : '立即播放',
                           icon: Icons.play_arrow_rounded,
-                          autofocus: true,
-                          onTap: () => widget.onPlay(current),
-                          backgroundColor: LumaColors.primary.withValues(
-                            alpha: 0.6,
-                          ),
+                          onClick: () => widget.onPlay(current),
                         ),
                         const SizedBox(width: 12),
                         TvButton(
@@ -423,29 +381,19 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                           icon: Icons.info_outline_rounded,
                           style: TvButtonStyle.filled,
                           onTap: () => widget.onDetails(current),
-                          backgroundColor: LumaColors.accent.withValues(
-                            alpha: 0.2,
-                          ),
                         ),
                         const Spacer(),
                         if (current.scrapeState == ScrapeState.pending ||
                             current.scrapeState == ScrapeState.failed)
                           Row(
                             children: [
-                              Icon(
-                                Icons.auto_awesome_outlined,
-                                size: 15,
-                                color: LumaColors.textMuted,
-                              ),
+                              Icon(Icons.auto_awesome_outlined, size: 15),
                               const SizedBox(width: 6),
                               Text(
                                 widget.controller.hasTmdbKey
                                     ? '等待刮削'
                                     : '未配置 TMDB',
-                                style: TextStyle(
-                                  fontSize: 11.5,
-                                  color: LumaColors.textMuted,
-                                ),
+                                style: TextStyle(fontSize: 11.5),
                               ),
                             ],
                           ),
@@ -499,9 +447,8 @@ class _HeroDot extends StatelessWidget {
           height: 4,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(2),
-            color: active
-                ? LumaColors.primary
-                : LumaColors.textMuted.withValues(alpha: 0.5),
+            color: Theme.of(context).colorScheme.primary
+                .withValues(alpha: active ? 1 : 0.5),
           ),
         ),
       ),
@@ -515,10 +462,7 @@ class _Dot extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 10),
-      child: Text(
-        '·',
-        style: TextStyle(fontSize: 14, color: LumaColors.textDim),
-      ),
+      child: Text('·', style: TextStyle(fontSize: 14)),
     );
   }
 }
@@ -533,20 +477,13 @@ class _ActivityCard extends StatelessWidget {
     final progress = controller.scrapeProgress;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-      decoration: BoxDecoration(
-        color: LumaColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: LumaColors.lineSoft),
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
       child: Row(
         children: [
           SizedBox(
             width: 20,
             height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: LumaColors.primary,
-            ),
+            child: CircularProgressIndicator(strokeWidth: 2),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -557,11 +494,7 @@ class _ActivityCard extends StatelessWidget {
                   scanning
                       ? '正在扫描「${controller.scanSourceName}」 · 已发现 ${controller.scanFound} 个视频'
                       : '正在刮削元数据 · ${progress.done}/${progress.total}',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: LumaColors.textOnSurface,
-                  ),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 3),
                 Text(
@@ -572,10 +505,6 @@ class _ActivityCard extends StatelessWidget {
                       : (progress.current.isEmpty ? '准备中…' : progress.current),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: LumaColors.textMutedOnSurface,
-                  ),
                 ),
               ],
             ),
@@ -588,8 +517,9 @@ class _ActivityCard extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: progress.fraction,
                   minHeight: 4,
-                  backgroundColor: LumaColors.line,
-                  valueColor: AlwaysStoppedAnimation(LumaColors.accent),
+                  valueColor: AlwaysStoppedAnimation(
+                    Theme.of(context).colorScheme.secondary,
+                  ),
                 ),
               ),
             ),
@@ -615,24 +545,16 @@ class _AccessBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
-      decoration: BoxDecoration(
-        color: LumaColors.primarySoft,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: LumaColors.primaryDeep),
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14)),
       child: Row(
         children: [
-          Icon(Icons.lock_outline_rounded, size: 18, color: LumaColors.primary),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Luma 还没有文件访问权限，扫描和播放可能无法读取外接磁盘。',
-              style: TextStyle(
-                fontSize: 12.5,
-                color: LumaColors.textDimOnSurface,
-              ),
-            ),
+          Icon(
+            Icons.lock_outline_rounded,
+            size: 18,
+            color: Theme.of(context).colorScheme.primary,
           ),
+          const SizedBox(width: 10),
+          Expanded(child: Text('Luma 还没有文件访问权限，扫描和播放可能无法读取外接磁盘。')),
           TvButton(
             label: '去授权',
             compact: true,

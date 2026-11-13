@@ -2,8 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../core/theme.dart';
-
 class LumaMark extends StatelessWidget {
   const LumaMark({super.key, this.size = 40, this.color});
 
@@ -12,7 +10,7 @@ class LumaMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resolved = color ?? LumaColors.accent;
+    final resolved = color ?? Theme.of(context).colorScheme.secondary;
     return CustomPaint(
       size: Size.square(size),
       painter: _LumaMarkPainter(resolved),
@@ -82,11 +80,11 @@ class LumaWordmark extends StatelessWidget {
     return Text(
       'LUMA',
       style: TextStyle(
-        fontFamily: LumaTheme.displayFont,
+        // fontFamily: LumaTheme.displayFont,
         fontSize: fontSize,
         fontWeight: FontWeight.w600,
         letterSpacing: letterSpacing,
-        color: color ?? LumaColors.text,
+        // color: color ?? Theme.of(context).colorScheme.text,
         height: 1,
       ),
     );

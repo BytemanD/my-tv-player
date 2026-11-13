@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../core/formatters.dart';
-import '../core/theme.dart';
 import '../data/scraper/tmdb_client.dart';
 
 /// 豆瓣图片站有防盗链：不带 Referer 会返回 418。
@@ -272,7 +271,7 @@ class PosterImage extends StatelessWidget {
             child: Text(
               initials(seed),
               style: TextStyle(
-                fontFamily: LumaTheme.displayFont,
+                // fontFamily: LumaTheme.displayFont,
                 fontSize: 34,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 2,
@@ -339,6 +338,8 @@ class PosterSkeleton extends StatelessWidget {
   const PosterSkeleton({super.key});
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(color: LumaColors.surfaceHigh);
+    return ColoredBox(
+      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+    );
   }
 }

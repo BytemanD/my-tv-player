@@ -20,29 +20,29 @@ enum TmdbLanguage {
   }
 }
 
+enum Options {
+  kLanguage('tmdb_language'),
+  kOnboarding('onboarding_complete'),
+  kAutoScrape('auto_scrape'),
+  kAutoScan('auto_scan_on_start'),
+  kAutoSubtitle('auto_subtitle'),
+  kAutoNext('auto_play_next'),
+  kSeekIntervalSeconds('player_seek_interval_seconds'),
+  kRememberPlaybackSpeed('remember_playback_speed'),
+  kLastPlaybackSpeed('last_playback_speed'),
+  kThemeId('theme_id'),
+  kThemeMode('theme_mode');
+
+  final String key;
+  const Options(this.key);
+}
+
 class SettingsService extends ChangeNotifier {
-  SettingsService._(this._prefs);
-
-  static const _kLanguage = 'tmdb_language';
-  static const _kOnboarding = 'onboarding_complete';
-  static const _kAutoScrape = 'auto_scrape';
-  static const _kAutoScan = 'auto_scan_on_start';
-  static const _kAutoSubtitle = 'auto_subtitle';
-  static const _kAutoNext = 'auto_play_next';
-  static const _kSeekIntervalSeconds = 'player_seek_interval_seconds';
-  static const _kRememberPlaybackSpeed = 'remember_playback_speed';
-  static const _kLastPlaybackSpeed = 'last_playback_speed';
-  static const _kThemeId = 'theme_id';
-  static const _kThemeMode = 'theme_mode';
-
   static const seekIntervalOptions = [5, 10, 15, 30, 60];
 
-  final SharedPreferences _prefs;
+  final SharedPreferencesWithCache _prefs;
 
-  static Future<SettingsService> load() async {
-    final prefs = await SharedPreferences.getInstance();
-    return SettingsService._(prefs);
-  }
+  new(this._prefs);
 
   /// TMDB API Key 仅来自环境变量（.env 文件或 --dart-define），不再存入数据库。
   /// 优先级：
@@ -100,94 +100,99 @@ class SettingsService extends ChangeNotifier {
   bool get hasDoubanKey => doubanApiKey.isNotEmpty;
 
   TmdbLanguage get language =>
-      TmdbLanguage.fromCode(_prefs.getString(_kLanguage));
+      TmdbLanguage.fromCode(_prefs.getString(Options.kLanguage.key));
 
-  bool get onboardingComplete => _prefs.getBool(_kOnboarding) ?? false;
+  bool get onboardingComplete =>
+      _prefs.getBool(Options.kOnboarding.key) ?? false;
 
-  bool get autoScrape => _prefs.getBool(_kAutoScrape) ?? true;
+  bool get autoScrape => _prefs.getBool(Options.kAutoScrape.key) ?? true;
 
-  bool get autoScanOnStart => _prefs.getBool(_kAutoScan) ?? false;
+  bool get autoScanOnStart => _prefs.getBool(Options.kAutoScan.key) ?? false;
 
-  bool get autoLoadSubtitles => _prefs.getBool(_kAutoSubtitle) ?? true;
+  bool get autoLoadSubtitles =>
+      _prefs.getBool(Options.kAutoSubtitle.key) ?? true;
 
-  bool get autoPlayNext => _prefs.getBool(_kAutoNext) ?? true;
+  bool get autoPlayNext => _prefs.getBool(Options.kAutoNext.key) ?? true;
 
   int get seekIntervalSeconds {
-    final value = _prefs.getInt(_kSeekIntervalSeconds);
+    final value = _prefs.getInt(Options.kSeekIntervalSeconds.key);
     return seekIntervalOptions.contains(value) ? value! : 10;
   }
 
   /// 是否记住上一次的播放速度。打开后，下一个视频将沿用上次切换的速度。
   bool get rememberPlaybackSpeed =>
-      _prefs.getBool(_kRememberPlaybackSpeed) ?? true;
+      _prefs.getBool(Options.kRememberPlaybackSpeed.key) ?? true;
 
   /// 上一次使用的播放速度（倍率），默认 1.0。
   double get lastPlaybackSpeed {
-    final value = _prefs.getDouble(_kLastPlaybackSpeed);
+    final value = _prefs.getDouble(Options.kLastPlaybackSpeed.key);
     return value ?? 1.0;
   }
 
   /// Selected theme, e.g. 'classic', 'byzantium', 'pineAmber', 'beanSand'.
   /// Defaults to classic. Unknown ids fall back to classic via LumaThemes.byId().
-  String get themeId => _prefs.getString(_kThemeId) ?? 'classic';
+  String get themeId => _prefs.getString(Options.kThemeId.key) ?? 'classic';
 
   /// Global light/dark mode, shared across all themes. Defaults to dark.
   String get themeMode =>
-      _prefs.getString(_kThemeMode) == 'light' ? 'light' : 'dark';
+      _prefs.getString(Options.kThemeMode.key) == 'light' ? 'light' : 'dark';
 
   Future<void> setLanguage(TmdbLanguage value) async {
-    await _prefs.setString(_kLanguage, value.code);
+    await _prefs.setString(Options.kLanguage.key, value.code);
     notifyListeners();
   }
 
   Future<void> setOnboardingComplete(bool value) async {
-    await _prefs.setBool(_kOnboarding, value);
+    await _prefs.setBool(Options.kOnboarding.key, value);
     notifyListeners();
   }
 
   Future<void> setAutoScrape(bool value) async {
-    await _prefs.setBool(_kAutoScrape, value);
+    await _prefs.setBool(Options.kAutoScrape.key, value);
     notifyListeners();
   }
 
   Future<void> setAutoScanOnStart(bool value) async {
-    await _prefs.setBool(_kAutoScan, value);
+    await _prefs.setBool(Options.kAutoScan.key, value);
     notifyListeners();
   }
 
   Future<void> setAutoLoadSubtitles(bool value) async {
-    await _prefs.setBool(_kAutoSubtitle, value);
+    await _prefs.setBool(Options.kAutoSubtitle.key, value);
     notifyListeners();
   }
 
   Future<void> setAutoPlayNext(bool value) async {
-    await _prefs.setBool(_kAutoNext, value);
+    await _prefs.setBool(Options.kAutoNext.key, value);
     notifyListeners();
   }
 
   Future<void> setSeekIntervalSeconds(int value) async {
     final seconds = seekIntervalOptions.contains(value) ? value : 10;
-    await _prefs.setInt(_kSeekIntervalSeconds, seconds);
+    await _prefs.setInt(Options.kSeekIntervalSeconds.key, seconds);
     notifyListeners();
   }
 
   Future<void> setRememberPlaybackSpeed(bool value) async {
-    await _prefs.setBool(_kRememberPlaybackSpeed, value);
+    await _prefs.setBool(Options.kRememberPlaybackSpeed.key, value);
     notifyListeners();
   }
 
   Future<void> setLastPlaybackSpeed(double value) async {
-    await _prefs.setDouble(_kLastPlaybackSpeed, value);
+    await _prefs.setDouble(Options.kLastPlaybackSpeed.key, value);
     notifyListeners();
   }
 
   Future<void> setThemeId(String value) async {
-    await _prefs.setString(_kThemeId, value);
+    await _prefs.setString(Options.kThemeId.key, value);
     notifyListeners();
   }
 
   Future<void> setThemeMode(String value) async {
-    await _prefs.setString(_kThemeMode, value == 'light' ? 'light' : 'dark');
+    await _prefs.setString(
+      Options.kThemeMode.key,
+      value == 'light' ? 'light' : 'dark',
+    );
     notifyListeners();
   }
 }

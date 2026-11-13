@@ -3,41 +3,30 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
-import 'package:logging/logging.dart';
+// import 'package:logging/logging.dart';
+import 'package:luma_tv/core/common/log.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 
-import '../core/luma_log.dart';
 import '../data/app_database.dart';
 import '../data/library_source.dart';
 import '../data/media_repository.dart';
 import '../data/models.dart';
 import '../data/scanner/media_scanner.dart';
 import '../data/scraper/metadata_scraper.dart';
-import '../core/theme.dart';
 import '../data/settings_service.dart';
 import '../data/storage_service.dart';
 
 class AppController extends ChangeNotifier {
-  AppController({
-    required this.database,
-    required this.repository,
-    required this.settings,
-    required this.storage,
-    required this.scanner,
-  });
-
-  final AppDatabase database;
-  final MediaRepository repository;
   final SettingsService settings;
   final StorageService storage;
   final MediaScanner scanner;
-  final Logger _log = LumaLog.of('Luma.App');
+  final AppDatabase database;
+  final MediaRepository repository;
 
   bool initializing = true;
   String? fatalError;
   bool hasStorageAccess = false;
-
   List<LibrarySource> sources = const [];
   List<LibraryEntry> entries = const [];
   List<LibraryEntry> movieEntries = const [];
@@ -71,10 +60,18 @@ class AppController extends ChangeNotifier {
   String appVersion = '';
 
   bool get hasTmdbKey => settings.hasTmdbKey;
-
   bool get hasDoubanKey => settings.hasDoubanKey;
+
   bool get libraryIsEmpty => entries.isEmpty;
   bool get isBusy => scanning || scraping;
+
+  AppController({
+    required this.settings,
+    required this.storage,
+    required this.scanner,
+    required this.database,
+    required this.repository,
+  });
 
   List<LibraryEntry> get recentEntries {
     final list = [...entries];
@@ -126,8 +123,11 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> initialize() async {
+    logger.i("app controller initialize ...");
+
     initializing = true;
     notifyListeners();
+
     try {
       final info = await PackageInfo.fromPlatform();
       appVersion = '${info.appName} ${info.version}';
@@ -467,7 +467,7 @@ class AppController extends ChangeNotifier {
     );
     notifyListeners();
 
-    _log.info('单项开始：${media.title} (isMovie=${media.isMovie}, id=${media.id})');
+    logger.i('单项开始：${media.title} (isMovie=${media.isMovie}, id=${media.id})');
 
     // 重置刮削状态，当作没有刮削过，重新开始
     if (media.id != null) {
@@ -492,14 +492,14 @@ class AppController extends ChangeNotifier {
       await refreshLibrary();
       if (ok) {
         showNotice('「${media.title}」刮削完成');
-        _log.info('单项完成：${media.title}');
+        logger.i('单项完成：${media.title}');
       } else {
         showNotice('「${media.title}」未找到匹配信息', error: true);
-        _log.info('单项失败：${media.title} - 未找到匹配信息');
+        logger.i('单项失败：${media.title} - 未找到匹配信息');
       }
     } catch (error) {
       showNotice('刮削失败：$error', error: true);
-      _log.info('单项异常：${media.title} - $error');
+      logger.i('单项异常：${media.title} - $error');
     } finally {
       _activeScraper = null;
       scraping = false;
@@ -540,24 +540,6 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setTheme(String value) async {
-    await settings.setThemeId(value);
-    LumaColors.apply(
-      settings.themeId,
-      settings.themeMode == 'light' ? Brightness.light : Brightness.dark,
-    );
-    notifyListeners();
-  }
-
-  Future<void> setThemeMode(String value) async {
-    await settings.setThemeMode(value);
-    LumaColors.apply(
-      settings.themeId,
-      settings.themeMode == 'light' ? Brightness.light : Brightness.dark,
-    );
-    notifyListeners();
-  }
-
   Future<void> setSeekIntervalSeconds(int value) async {
     await settings.setSeekIntervalSeconds(value);
     notifyListeners();
@@ -578,6 +560,10 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> notCompleteOnboarding() async {
+    await settings.setOnboardingComplete(false);
+    notifyListeners();
+  }
   // ---------------------------------------------------------------- progress
 
   Future<PlaybackProgress?> progressFor(MediaItem media) async {
@@ -703,7 +689,7 @@ class AppController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> close() async {
+  Future<void> shutdown() async {
     _noticeTimer?.cancel();
     _activeScraper?.cancel();
     await database.close();

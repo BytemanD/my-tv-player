@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:luma_tv/widgets/button.dart';
+import 'package:luma_tv/widgets/divider.dart';
+import 'package:luma_tv/widgets/text.dart';
 
 import '../core/formatters.dart';
-import '../core/theme.dart';
 import '../data/models.dart';
 import 'media_cards.dart';
-import 'tv_focusable.dart';
 
 class MediaShelf extends StatelessWidget {
   const MediaShelf({
@@ -41,7 +42,7 @@ class MediaShelf extends StatelessWidget {
         text: TextSpan(
           text: entry.title.isEmpty ? ' ' : entry.title,
           style: inheritedTextStyle.merge(
-            const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500),
+            const TextStyle(fontSize: 114.5, fontWeight: FontWeight.w500),
           ),
         ),
         maxLines: 1,
@@ -61,39 +62,30 @@ class MediaShelf extends StatelessWidget {
       final metaHeight = titlePainter.height + subtitlePainter.height;
       return metaHeight > maxHeight ? metaHeight : maxHeight;
     });
-    final posterShelfHeight = 264 + 10 + 3 + maxMetaHeight + 12 + 16;
+    final posterShelfHeight = 124 + 10 + 3 + maxMetaHeight;
+
+    final children = <Widget>[
+      TH3(title),
+      // const SizedBox(width: 10),
+      TDivider(),
+
+      Text('$itemCount', style: const TextStyle(fontSize: 12)),
+      const Spacer(),
+      if (onSeeAll != null)
+        TButton(
+          label: '查看全部',
+          color: Theme.of(context).colorScheme.secondary,
+          onClick: onSeeAll,
+          // style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        ),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, right: 8, bottom: 8),
-          child: Row(
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 19,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.2,
-                  color: LumaColors.text,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                '$itemCount',
-                style: TextStyle(fontSize: 12, color: LumaColors.textMuted),
-              ),
-              const Spacer(),
-              if (onSeeAll != null)
-                TvButton(
-                  label: '查看全部',
-                  style: TvButtonStyle.ghost,
-                  compact: true,
-                  onTap: onSeeAll,
-                ),
-            ],
-          ),
+          child: Row(children: children),
         ),
         SizedBox(
           height: height ?? (isContinue ? 190 : posterShelfHeight),
@@ -107,7 +99,7 @@ class MediaShelf extends StatelessWidget {
               if (isContinue) {
                 return ContinueCard(
                   item: continueItems![index],
-                  autofocus: autofocusFirst && index == 0,
+                  // autofocus: autofocusFirst && index == 0,
                   onTap: () {
                     final item = continueItems![index];
                     if (onOpenContinue != null) {
@@ -120,7 +112,7 @@ class MediaShelf extends StatelessWidget {
               }
               return PosterCard(
                 entry: entries[index],
-                autofocus: autofocusFirst && index == 0,
+                // autofocus: autofocusFirst && index == 0,
                 onTap: () => onOpen(entries[index]),
               );
             },
@@ -172,7 +164,7 @@ class EpisodeShelf extends StatelessWidget {
           final media = episodes[index];
           return EpisodeCard(
             media: media,
-            autofocus: autofocusFirst && index == 0,
+            // autofocus: autofocusFirst && index == 0,
             progress: media.id == null ? null : progressMap[media.id],
             watched: progressMap[media.id]?.completed ?? false,
             onTap: () => onOpen(media),

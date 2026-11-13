@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../core/theme.dart';
 import 'logo.dart';
-import 'tv_focusable.dart';
+import '../widgets/tv_focusable.dart';
 
 class EmptyLibrary extends StatelessWidget {
   const EmptyLibrary({
@@ -24,6 +23,65 @@ class EmptyLibrary extends StatelessWidget {
   final String? title;
   final String? description;
 
+  Widget _actionButton({
+    required String label,
+    required IconData icon,
+    required bool autofocus,
+    required VoidCallback onTap,
+    bool outline = false,
+  }) {
+    return TvFocusable(
+      // autofocus: autofocus,
+      onTap: onTap,
+      builder: (context, focused) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          decoration: BoxDecoration(
+            color: outline
+                ? (focused
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.transparent)
+                : (focused
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.surfaceContainerHigh),
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(
+              color: outline
+                  ? (focused
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.surfaceContainerHighest)
+                  : Colors.transparent,
+              width: 1.2,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: focused
+                    ? Theme.of(context).colorScheme.onPrimary
+                    : Theme.of(context).colorScheme.onSecondary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  // color: focused
+                  //     ? Theme.of(context).colorScheme.onPrimary
+                  //     : Theme.of(context).colorScheme.text,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -40,7 +98,7 @@ class EmptyLibrary extends StatelessWidget {
                 fontSize: 34,
                 fontWeight: FontWeight.w600,
                 letterSpacing: -0.5,
-                color: LumaColors.text,
+                // color: Theme.of(context).colorScheme.text,
               ),
             ),
             const SizedBox(height: 12),
@@ -53,7 +111,7 @@ class EmptyLibrary extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14.5,
                 height: 1.7,
-                color: LumaColors.textMuted,
+                // color: Theme.of(context).colorScheme.textMuted,
               ),
             ),
             const SizedBox(height: 30),
@@ -63,26 +121,27 @@ class EmptyLibrary extends StatelessWidget {
               alignment: WrapAlignment.center,
               children: [
                 if (!hasAccess && onGrantAccess != null)
-                  TvButton(
+                  _actionButton(
                     label: '授予文件访问权限',
                     icon: Icons.lock_open_rounded,
-                    autofocus: true,
-                    onTap: onGrantAccess,
+                    autofocus: false,
+                    onTap: onGrantAccess!,
                   ),
-                TvButton(
+                _actionButton(
                   label: hasSources ? '重新扫描' : '添加媒体目录',
                   icon: hasSources
                       ? Icons.refresh_rounded
                       : Icons.folder_open_rounded,
-                  autofocus: hasAccess,
+                  autofocus: false,
                   onTap: hasSources ? onScan : onAddFolder,
                 ),
                 if (!hasSources)
-                  TvButton(
+                  _actionButton(
                     label: '扫描整块磁盘',
                     icon: Icons.storage_rounded,
-                    style: TvButtonStyle.outline,
+                    autofocus: false,
                     onTap: onScan,
+                    outline: true,
                   ),
               ],
             ),
@@ -90,7 +149,10 @@ class EmptyLibrary extends StatelessWidget {
               const SizedBox(height: 22),
               Text(
                 'Android TV 需要“所有文件访问权限”才能读取外接磁盘中的视频',
-                style: TextStyle(fontSize: 12, color: LumaColors.textMuted),
+                style: TextStyle(
+                  fontSize: 12,
+                  // color: Theme.of(context).colorScheme.textMuted,
+                ),
               ),
             ],
           ],

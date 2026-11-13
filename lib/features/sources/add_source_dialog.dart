@@ -1,10 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:luma_tv/widgets/button.dart';
 
 import '../../controllers/app_controller.dart';
 import '../../core/formatters.dart';
-import '../../core/theme.dart';
+// import '../../core/theme.dart';
 import '../../data/storage_service.dart';
 import '../../widgets/tv_focusable.dart';
 
@@ -160,9 +161,9 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
           constraints: const BoxConstraints(maxHeight: 720),
           padding: const EdgeInsets.fromLTRB(28, 24, 28, 22),
           decoration: BoxDecoration(
-            color: LumaColors.surface,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: LumaColors.line),
+            // border: Border.all(color: Theme.of(context).colorScheme.),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.6),
@@ -182,7 +183,7 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
-                        color: LumaColors.textOnSurface,
+                        // color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -198,7 +199,7 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
                 style: TextStyle(
                   fontSize: 13,
                   height: 1.6,
-                  color: LumaColors.textMutedOnSurface,
+                  // color: Theme.of(context).colorScheme.textMutedOnSurface,
                 ),
               ),
               if (!widget.controller.hasStorageAccess)
@@ -206,16 +207,18 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
                   margin: const EdgeInsets.only(top: 14),
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: LumaColors.primarySoft,
+                    // color: Theme.of(context).colorScheme.primarySoft,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: LumaColors.primaryDeep),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.info_outline_rounded,
                         size: 18,
-                        color: LumaColors.primary,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                       const SizedBox(width: 10),
                       Expanded(
@@ -223,15 +226,15 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
                           '尚未授予“所有文件访问权限”，无法浏览外接磁盘。',
                           style: TextStyle(
                             fontSize: 12.5,
-                            color: LumaColors.textDimOnSurface,
+                            // color: Theme.of(context).colorScheme.textDimOnSurface,
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      TvButton(
+                      TButton(
                         label: '去授权',
-                        compact: true,
-                        onTap: _requestAccess,
+                        // compact: true,
+                        onClick: _requestAccess,
                       ),
                     ],
                   ),
@@ -240,9 +243,9 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: LumaColors.backgroundSoft,
+                    // color: Theme.of(context).colorScheme.backgroundSoft,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: LumaColors.lineSoft),
+                    // border: Border.all(color: Theme.of(context).colorScheme.lineSoft),
                   ),
                   child: Column(
                     children: [
@@ -266,7 +269,9 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 12.5,
-                                    color: LumaColors.textMutedOnSurface,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .secondary,
                                   ),
                                 ),
                               ),
@@ -281,7 +286,7 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
                               Icon(
                                 Icons.storage_rounded,
                                 size: 18,
-                                color: LumaColors.textMutedOnSurface,
+                                color: Theme.of(context).colorScheme.secondary,
                               ),
                               const SizedBox(width: 10),
                               Text(
@@ -289,13 +294,18 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
-                                  color: LumaColors.textOnSurface,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .secondary,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      Divider(height: 1, color: LumaColors.lineSoft),
+                      Divider(
+                        height: 1,
+                        // color: Theme.of(context).colorScheme.lineSoft,
+                      ),
                       Expanded(child: _buildList()),
                     ],
                   ),
@@ -308,8 +318,8 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
                     Icons.folder_rounded,
                     size: 18,
                     color: _atRoot
-                        ? LumaColors.textMutedOnSurface
-                        : LumaColors.primary,
+                        ? Theme.of(context).colorScheme.secondary
+                        : Theme.of(context).colorScheme.primary,
                   ),
                   const SizedBox(width: 9),
                   Expanded(
@@ -320,25 +330,25 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
                       style: TextStyle(
                         fontSize: 12.5,
                         color: _atRoot
-                            ? LumaColors.textMutedOnSurface
-                            : LumaColors.textOnSurface,
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.secondary,
                       ),
                     ),
                   ),
                   const SizedBox(width: 16),
-                  TvButton(
+                  TButton(
                     label: '取消',
-                    style: TvButtonStyle.ghost,
-                    compact: true,
-                    onTap: () => Navigator.of(context).pop(),
+                    // style: TvButtonStyle.ghost,
+                    // compact: true,
+                    onClick: () => Navigator.of(context).pop(),
                   ),
                   const SizedBox(width: 10),
-                  TvButton(
+                  TButton(
                     label: _atVolumeRoot ? '使用整块磁盘' : '使用此文件夹',
                     icon: Icons.check_rounded,
-                    compact: true,
+                    // compact: true,
                     enabled: !_atRoot,
-                    onTap: _atRoot ? null : _confirm,
+                    onClick: _atRoot ? null : _confirm,
                   ),
                 ],
               ),
@@ -357,7 +367,7 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
           height: 24,
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            color: LumaColors.primary,
+            color: Theme.of(context).colorScheme.primary,
           ),
         ),
       );
@@ -372,7 +382,7 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
               Icon(
                 Icons.lock_outline_rounded,
                 size: 32,
-                color: LumaColors.textMutedOnSurface,
+                color: Theme.of(context).colorScheme.secondary,
               ),
               const SizedBox(height: 12),
               Text(
@@ -381,14 +391,14 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
                 style: TextStyle(
                   fontSize: 13,
                   height: 1.5,
-                  color: LumaColors.textMutedOnSurface,
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
               ),
               const SizedBox(height: 14),
-              TvButton(
+              TButton(
                 label: '授予所有文件访问权限',
-                compact: true,
-                onTap: () => _requestAccess(allFiles: true),
+                // compact: true,
+                onClick: () => _requestAccess(allFiles: true),
               ),
             ],
           ),
@@ -403,7 +413,7 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
             '没有检测到可用的存储设备',
             style: TextStyle(
               fontSize: 13,
-              color: LumaColors.textMutedOnSurface,
+              color: Theme.of(context).colorScheme.secondary,
             ),
           ),
         );
@@ -431,7 +441,10 @@ class _FolderPickerDialogState extends State<_FolderPickerDialog> {
       return Center(
         child: Text(
           '该目录下没有子文件夹',
-          style: TextStyle(fontSize: 13, color: LumaColors.textMutedOnSurface),
+          style: TextStyle(
+            fontSize: 13,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
         ),
       );
     }
@@ -471,7 +484,7 @@ class _EntryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TvFocusable(
-      autofocus: autofocus,
+      // autofocus: autofocus,
       onTap: onTap,
       scale: 1.008,
       builder: (context, focused) {
@@ -479,10 +492,14 @@ class _EntryRow extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
           decoration: BoxDecoration(
-            color: focused ? LumaColors.surfaceHigh : LumaColors.backgroundSoft,
+            color: focused
+                ? Theme.of(context).colorScheme.surfaceContainerHigh
+                : Theme.of(context).colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: focused ? LumaColors.primary : LumaColors.lineSoft,
+              color: focused
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.secondary,
             ),
           ),
           child: Row(
@@ -491,8 +508,8 @@ class _EntryRow extends StatelessWidget {
                 icon,
                 size: 22,
                 color: focused
-                    ? LumaColors.primary
-                    : LumaColors.textMutedOnSurface,
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -506,7 +523,9 @@ class _EntryRow extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: LumaColors.textOnSurface,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHigh,
                       ),
                     ),
                     if (subtitle != null && subtitle!.isNotEmpty) ...[
@@ -517,7 +536,9 @@ class _EntryRow extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 11,
-                          color: LumaColors.textMutedOnSurface,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHigh,
                         ),
                       ),
                     ],
@@ -530,7 +551,7 @@ class _EntryRow extends StatelessWidget {
                   trailing!,
                   style: TextStyle(
                     fontSize: 11,
-                    color: LumaColors.textMutedOnSurface,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ],
@@ -539,8 +560,8 @@ class _EntryRow extends StatelessWidget {
                 Icons.chevron_right_rounded,
                 size: 20,
                 color: focused
-                    ? LumaColors.primary
-                    : LumaColors.textMutedOnSurface,
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.surface,
               ),
             ],
           ),

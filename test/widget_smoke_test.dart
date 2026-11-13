@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:luma_tv/controllers/app_controller.dart';
-import 'package:luma_tv/core/theme.dart';
+import 'package:luma_tv/controllers/theme_controller.dart';
+// import 'package:luma_tv/core/theme.dart';
 import 'package:luma_tv/data/app_database.dart';
 import 'package:luma_tv/data/models.dart';
 import 'package:luma_tv/data/media_repository.dart';
@@ -9,6 +10,7 @@ import 'package:luma_tv/data/scanner/media_scanner.dart';
 import 'package:luma_tv/data/settings_service.dart';
 import 'package:luma_tv/data/storage_service.dart';
 import 'package:luma_tv/features/onboarding/onboarding_screen.dart';
+import 'package:luma_tv/features/home/home_screen.dart';
 import 'package:luma_tv/features/shell/main_shell.dart';
 import 'package:luma_tv/widgets/shelf.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +23,7 @@ void main() {
 
   late AppDatabase database;
   late AppController controller;
+  late ThemeController themeController;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -37,10 +40,11 @@ void main() {
       scanner: MediaScanner(),
     );
     await controller.initialize();
+    themeController = ThemeController();
   });
 
   tearDown(() async {
-    await controller.close();
+    await controller.shutdown();
   });
 
   Future<void> pumpAt720p(WidgetTester tester, Widget child) async {
@@ -51,7 +55,7 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider<AppController>.value(
         value: controller,
-        child: MaterialApp(theme: LumaTheme.build(), home: child),
+        child: MaterialApp(theme: themeController.getThemeData(), home: child),
       ),
     );
     await tester.pumpAndSettle();
@@ -65,7 +69,7 @@ void main() {
   });
 
   testWidgets('main shell lays out every tab on a 720p TV', (tester) async {
-    await pumpAt720p(tester, const MainShell());
+    await pumpAt720p(tester, const MainShell(child: HomeScreen()));
     expect(find.text('首页'), findsWidgets);
     expect(find.text('设置'), findsWidgets);
     expect(find.text('把你的电影，留在墙上'), findsOneWidget);
