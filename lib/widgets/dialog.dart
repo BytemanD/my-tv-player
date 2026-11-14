@@ -1,12 +1,13 @@
 import 'dart:io';
 
+import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/app_controller.dart';
 import 'package:luma_tv/controllers/theme_controller.dart';
 import 'package:luma_tv/core/common/utils.dart';
 import 'package:luma_tv/data/storage_service.dart';
 import 'package:luma_tv/widgets/button.dart';
-import 'package:luma_tv/widgets/tv_focusable.dart';
+import 'package:luma_tv/widgets/divider.dart';
 
 class FolderPickerDialog extends StatefulWidget {
   const FolderPickerDialog({super.key, required this.controller});
@@ -174,7 +175,7 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const TDivider(height: 8),
               Text(
                 _atRoot
                     ? '先选择一块磁盘，再逐层进入包含视频的文件夹。'
@@ -205,7 +206,7 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
                         size: 18,
                         color: Theme.of(context).colorScheme.primary,
                       ),
-                      const SizedBox(width: 10),
+                      const TDivider(width: 10),
                       Expanded(
                         child: Text(
                           '尚未授予“所有文件访问权限”，无法浏览外接磁盘。',
@@ -217,12 +218,12 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const TDivider(width: 12),
                       TButton(label: '去授权', onClick: _requestAccess),
                     ],
                   ),
                 ),
-              const SizedBox(height: 16),
+              const TDivider(height: 16),
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
@@ -239,12 +240,11 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
                             children: [
                               TButton(
                                 icon: Icons.arrow_upward_rounded,
-                                // tooltip: '上一级',
+                                color: Theme.of(context).colorScheme.primary,
                                 size: 36,
-                                // iconSize: 18,
                                 onClick: _goBack,
                               ),
-                              const SizedBox(width: 12),
+                              const TDivider(width: 12),
                               Expanded(
                                 child: Text(
                                   current ?? '',
@@ -273,7 +273,7 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
                                 //     .colorScheme
                                 //     .textMutedOnSurface,
                               ),
-                              const SizedBox(width: 10),
+                              const TDivider(width: 10),
                               Text(
                                 '存储设备',
                                 style: TextStyle(
@@ -296,7 +296,7 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const TDivider(height: 16),
               Row(
                 children: [
                   Icon(
@@ -306,7 +306,7 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
                         ? Theme.of(context).colorScheme.secondary
                         : Theme.of(context).colorScheme.primary,
                   ),
-                  const SizedBox(width: 9),
+                  const TDivider(width: 9),
                   Expanded(
                     child: Text(
                       _atRoot ? '未选择文件夹' : current!,
@@ -320,14 +320,14 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const TDivider(width: 16),
                   TButton(
                     label: '取消',
                     // style: TvButtonStyle.ghost,
                     // compact: true,
                     onClick: () => Navigator.of(context).pop(),
                   ),
-                  const SizedBox(width: 10),
+                  const TDivider(width: 10),
                   TButton(
                     label: _atVolumeRoot ? '使用整块磁盘' : '使用此文件夹',
                     icon: Icons.check_rounded,
@@ -346,16 +346,7 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
 
   Widget _buildList() {
     if (_loading) {
-      return Center(
-        child: SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-      );
+      return Center(child: TDivider(width: 24, height: 24));
     }
     if (_error != null) {
       return Center(
@@ -369,7 +360,7 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
                 size: 32,
                 // color: Theme.of(context).colorScheme.textMutedOnSurface,
               ),
-              const SizedBox(height: 12),
+              const TDivider(height: 12),
               Text(
                 _error!,
                 textAlign: TextAlign.center,
@@ -379,7 +370,7 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
                   // color: Theme.of(context).colorScheme.textMutedOnSurface,
                 ),
               ),
-              const SizedBox(height: 14),
+              const TDivider(height: 14),
               TButton(
                 label: '授予所有文件访问权限',
                 // compact: true,
@@ -456,7 +447,6 @@ class _EntryRow extends StatelessWidget {
     required this.onTap,
     this.subtitle,
     this.trailing,
-    this.autofocus = false,
   });
 
   final IconData icon;
@@ -464,7 +454,6 @@ class _EntryRow extends StatelessWidget {
   final String? subtitle;
   final String? trailing;
   final VoidCallback onTap;
-  final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
@@ -495,7 +484,7 @@ class _EntryRow extends StatelessWidget {
                     ? Theme.of(context).colorScheme.primary
                     : Theme.of(context).colorScheme.secondary,
               ),
-              const SizedBox(width: 14),
+              const TDivider(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -511,7 +500,7 @@ class _EntryRow extends StatelessWidget {
                       ),
                     ),
                     if (subtitle != null && subtitle!.isNotEmpty) ...[
-                      const SizedBox(height: 2),
+                      const TDivider(height: 2),
                       Text(
                         subtitle!,
                         maxLines: 1,
@@ -526,7 +515,7 @@ class _EntryRow extends StatelessWidget {
                 ),
               ),
               if (trailing != null && trailing!.isNotEmpty) ...[
-                const SizedBox(width: 16),
+                const TDivider(width: 16),
                 Text(
                   trailing!,
                   style: TextStyle(
@@ -535,7 +524,7 @@ class _EntryRow extends StatelessWidget {
                   ),
                 ),
               ],
-              const SizedBox(width: 10),
+              const TDivider(width: 10),
               Icon(
                 Icons.chevron_right_rounded,
                 size: 20,
@@ -593,7 +582,7 @@ class ConfirmDialog extends StatelessWidget {
                       ? Theme.of(context).extension<SemanticColors>()?.danger
                       : Theme.of(context).colorScheme.primary,
                 ),
-                const SizedBox(width: 10),
+                const TDivider(width: 10),
                 Text(
                   title,
                   style: TextStyle(
@@ -604,7 +593,7 @@ class ConfirmDialog extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const TDivider(height: 14),
             Text(
               message,
               style: TextStyle(
@@ -613,7 +602,7 @@ class ConfirmDialog extends StatelessWidget {
                 color: Theme.of(context).colorScheme.secondaryFixedDim,
               ),
             ),
-            const SizedBox(height: 24),
+            const TDivider(height: 24),
             Row(
               children: [
                 const Spacer(),
@@ -623,7 +612,7 @@ class ConfirmDialog extends StatelessWidget {
                   // compact: true,
                   onClick: () => Navigator.of(context).pop(false),
                 ),
-                const SizedBox(width: 10),
+                const TDivider(width: 10),
                 TButton(
                   label: confirmLabel,
                   // style: destructive
@@ -640,4 +629,17 @@ class ConfirmDialog extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> showAddSourceDialog(
+  BuildContext context,
+  AppController controller,
+) async {
+  final path = await showDialog<String>(
+    context: context,
+    barrierDismissible: true,
+    builder: (_) => FolderPickerDialog(controller: controller),
+  );
+  if (path == null) return;
+  await controller.addSourceFromPath(path);
 }

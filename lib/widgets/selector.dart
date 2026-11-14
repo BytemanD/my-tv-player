@@ -1,8 +1,8 @@
+import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
 import 'package:luma_tv/widgets/divider.dart';
 import 'package:luma_tv/widgets/space.dart';
 import 'package:luma_tv/widgets/text.dart';
-import 'package:luma_tv/widgets/tv_focusable.dart';
 
 class TSelect extends StatefulWidget {
   final List<String> items;

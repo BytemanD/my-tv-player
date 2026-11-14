@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:luma_tv/core/common/preference.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum TmdbLanguage {
@@ -20,27 +21,10 @@ enum TmdbLanguage {
   }
 }
 
-enum Options {
-  kLanguage('tmdb_language'),
-  kOnboarding('onboarding_complete'),
-  kAutoScrape('auto_scrape'),
-  kAutoScan('auto_scan_on_start'),
-  kAutoSubtitle('auto_subtitle'),
-  kAutoNext('auto_play_next'),
-  kSeekIntervalSeconds('player_seek_interval_seconds'),
-  kRememberPlaybackSpeed('remember_playback_speed'),
-  kLastPlaybackSpeed('last_playback_speed'),
-  kThemeId('theme_id'),
-  kThemeMode('theme_mode');
-
-  final String key;
-  const Options(this.key);
-}
-
 class SettingsService extends ChangeNotifier {
   static const seekIntervalOptions = [5, 10, 15, 30, 60];
 
-  final SharedPreferences _prefs;
+  final SharedPreferencesWithCache _prefs;
 
   new(this._prefs);
 
@@ -134,8 +118,7 @@ class SettingsService extends ChangeNotifier {
   String get themeId => _prefs.getString(Options.kThemeId.key) ?? 'classic';
 
   /// Global light/dark mode, shared across all themes. Defaults to dark.
-  String get themeMode =>
-      _prefs.getString(Options.kThemeMode.key) == 'light' ? 'light' : 'dark';
+  bool get themeDark => _prefs.getBool(Options.kThemeDark.key) ?? true;
 
   Future<void> setLanguage(TmdbLanguage value) async {
     await _prefs.setString(Options.kLanguage.key, value.code);
@@ -188,11 +171,8 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setThemeMode(String value) async {
-    await _prefs.setString(
-      Options.kThemeMode.key,
-      value == 'light' ? 'light' : 'dark',
-    );
+  Future<void> setThemeDark(bool value) async {
+    await _prefs.setBool(Options.kThemeDark.key, value);
     notifyListeners();
   }
 }

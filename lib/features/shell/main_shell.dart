@@ -1,3 +1,4 @@
+import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/menu_controller.dart';
 import 'package:luma_tv/controllers/message_controller.dart';
@@ -8,7 +9,6 @@ import '../../controllers/app_controller.dart';
 import '../home/home_screen.dart';
 import '../library/library_screen.dart';
 import '../settings/settings_screen.dart';
-import '../../widgets/tv_focusable.dart';
 
 final node1 = FocusNode();
 

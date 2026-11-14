@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:luma_tv/controllers/app_controller.dart';
+import 'package:luma_tv/controllers/message_controller.dart';
+import 'package:luma_tv/controllers/menu_controller.dart';
 import 'package:luma_tv/controllers/theme_controller.dart';
-// import 'package:luma_tv/core/theme.dart';
 import 'package:luma_tv/data/app_database.dart';
 import 'package:luma_tv/data/models.dart';
 import 'package:luma_tv/data/media_repository.dart';
@@ -15,6 +16,8 @@ import 'package:luma_tv/features/shell/main_shell.dart';
 import 'package:luma_tv/widgets/shelf.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
@@ -26,8 +29,12 @@ void main() {
   late ThemeController themeController;
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
+    // SharedPreferences.setMockInitialValues({});
+    SharedPreferencesAsyncPlatform.instance =
+        InMemorySharedPreferencesAsync.empty();
+    final prefs = await SharedPreferencesWithCache.create(
+      cacheOptions: const SharedPreferencesWithCacheOptions(),
+    );
     final settings = SettingsService(prefs);
     database = AppDatabase(
       factory: databaseFactoryFfi,
@@ -41,7 +48,7 @@ void main() {
       scanner: MediaScanner(),
     );
     await controller.initialize();
-    themeController = ThemeController(prefs);
+    themeController = ThemeController(settings);
   });
 
   tearDown(() async {
@@ -58,8 +65,15 @@ void main() {
         providers: [
           ChangeNotifierProvider<AppController>.value(value: controller),
           ChangeNotifierProvider<ThemeController>.value(value: themeController),
+          ChangeNotifierProvider<AppMenuController>.value(
+            value: AppMenuController(),
+          ),
+          Provider<MessageController>.value(value: MessageController()),
         ],
-        child: MaterialApp(theme: themeController.appTheme.themeData, home: child),
+        child: MaterialApp(
+          theme: themeController.appTheme.themeData,
+          home: child,
+        ),
       ),
     );
     await tester.pumpAndSettle();

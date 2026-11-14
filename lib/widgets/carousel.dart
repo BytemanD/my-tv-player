@@ -10,8 +10,10 @@ import 'package:luma_tv/widgets/divider.dart';
 import 'package:luma_tv/widgets/space.dart';
 import 'package:luma_tv/widgets/spliter.dart';
 import 'package:luma_tv/widgets/text.dart';
-import 'package:luma_tv/widgets/tv_focusable.dart';
 
+/* 
+  轮播海报墙
+*/
 class HeroCarousel extends StatefulWidget {
   const HeroCarousel({
     super.key,
@@ -68,12 +70,6 @@ class _HeroCarouselState extends State<HeroCarousel> {
     final length = widget.entries.length;
     if (length <= 1) return;
     setState(() => _index = (_index + delta + length) % length);
-    _restartTimer();
-  }
-
-  void _goTo(int index) {
-    if (index == _index) return;
-    setState(() => _index = index);
     _restartTimer();
   }
 
@@ -253,7 +249,7 @@ class _HeroCarouselState extends State<HeroCarousel> {
                       children: [
                         for (var i = 0; i < widget.entries.length; i++) ...[
                           if (i > 0) const SizedBox(width: 8),
-                          _HeroDot(active: i == _index, onTap: () => _goTo(i)),
+                          _HeroDot(active: i == _index),
                         ],
                       ],
                     ),
@@ -268,22 +264,21 @@ class _HeroCarouselState extends State<HeroCarousel> {
 }
 
 class _HeroDot extends StatelessWidget {
-  const _HeroDot({required this.active, required this.onTap});
+  const _HeroDot({required this.active});
 
   final bool active;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return DpadFocusable(
-      onSelect: onTap,
-      child: Container(
-        width: active ? 26 : 6,
-        height: 4,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(2),
-          color: active ? const Color(0xFFE9C57E) : Colors.white38,
-        ),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+      width: active ? 26 : 6,
+      height: 4,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(2),
+        color: Theme.of(context).colorScheme.primary
+            .withValues(alpha: active ? 1 : 0.5),
       ),
     );
   }

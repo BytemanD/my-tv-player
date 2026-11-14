@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:luma_tv/core/common/preference.dart';
+import 'package:luma_tv/core/common/log.dart';
 import 'package:luma_tv/core/common/themes.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:luma_tv/data/settings_service.dart';
 
 @immutable
 class SemanticColors extends ThemeExtension<SemanticColors> {
@@ -70,16 +70,24 @@ class AppTheme {
 }
 
 class ThemeController extends ChangeNotifier {
-  final SharedPreferences prefs;
+  final SettingsService settingsService;
 
   AppTheme appTheme = _getAppTheme();
 
-  new(this.prefs);
+  new(this.settingsService);
 
-  void load() async {
+  Future<void> load() async {
+    try {
+      settingsService.themeId;
+      settingsService.themeDark;
+    } catch (e) {
+      logger.w("get theme from prefs failed $e");
+      await settingsService.setThemeId(appTheme.id);
+      await settingsService.setThemeDark(appTheme.dark);
+    }
     appTheme = _getAppTheme(
-      themeId: prefs.getString(Options.kThemeId.key),
-      dark: prefs.getBool(Options.kThemeMode.key),
+      themeId: settingsService.themeId,
+      dark: settingsService.themeDark,
     );
   }
 
@@ -93,6 +101,8 @@ class ThemeController extends ChangeNotifier {
     if (appTheme.dark == value) {
       return;
     }
+    logger.d("save theme dark: $value");
+    await settingsService.setThemeDark(value);
     appTheme = _getAppTheme(themeId: appTheme.id, dark: value);
     notifyListeners();
   }
@@ -104,7 +114,8 @@ class ThemeController extends ChangeNotifier {
     if (appTheme.id == value) {
       return;
     }
-    await prefs.setString(Options.kThemeId.key, value);
+    logger.d("save theme id: $value");
+    await settingsService.setThemeId(value);
     appTheme = _getAppTheme(themeId: value, dark: appTheme.dark);
     notifyListeners();
   }

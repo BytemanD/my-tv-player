@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:luma_tv/controllers/theme_controller.dart';
@@ -15,7 +16,6 @@ import '../../core/common/utils.dart';
 // import '../../core/theme.dart';
 import '../../data/models.dart';
 import '../../data/settings_service.dart';
-import '../../widgets/tv_focusable.dart';
 
 class PlayerScreen extends StatefulWidget {
   const PlayerScreen({
@@ -78,6 +78,8 @@ class _PlayerScreenState extends State<PlayerScreen>
   bool _controlsVisible = true;
   bool _panelOpen = false;
   bool _loading = true;
+  DateTime? _lastBackPressedAt;
+  Offset? _doubleTapDownPosition;
   _DoubleTapZone _doubleTapZone = _DoubleTapZone.center;
   String? _error;
   String? _seekFlash;
@@ -464,13 +466,12 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     final key = event.logicalKey;
     if (key == LogicalKeyboardKey.escape || key == LogicalKeyboardKey.goBack) {
-      if (_controlsVisible) {
-        setState(() => _controlsVisible = false);
-        _hideTimer?.cancel();
-      } else {
-        _exit();
+      if (_panelOpen) {
+        _closePanel();
+        return KeyEventResult.handled;
       }
-      return KeyEventResult.handled;
+      // 其余返回键交给 PopScope 统一处理（面板/控制条/双击退出）
+      return KeyEventResult.ignored;
     }
     if (key == LogicalKeyboardKey.arrowLeft) {
       _seekBy(-widget.controller.settings.seekIntervalSeconds);
@@ -535,6 +536,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _handleVideoDoubleTapDown(TapDownDetails details, double width) {
+    _doubleTapDownPosition = details.localPosition;
     final fraction = width <= 0 ? 0.5 : details.localPosition.dx / width;
     _doubleTapZone = fraction < 1 / 3
         ? _DoubleTapZone.left
@@ -545,6 +547,18 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   void _handleVideoDoubleTap() {
     if (_panelOpen || _loading) return;
+    final pos = _doubleTapDownPosition;
+    if (pos != null) {
+      final size = MediaQuery.sizeOf(context);
+      // 顶部控制条（标题栏、返回、更多）：y < 180
+      // 底部控制条（进度条、播放/暂停、倍速、画面比例）：y > size.height - 250
+      // 仅在视频真正的空白处双击才触发快进/快退/播放暂停。
+      if (pos.dy < 180 || pos.dy > size.height - 250) {
+        _doubleTapDownPosition = null;
+        return;
+      }
+    }
+    _doubleTapDownPosition = null;
     switch (_doubleTapZone) {
       case _DoubleTapZone.left:
         _seekBy(-widget.controller.settings.seekIntervalSeconds);
@@ -701,6 +715,17 @@ class _PlayerScreenState extends State<PlayerScreen>
     });
   }
 
+  void _showExitTip() {
+    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('再按一次返回退出播放'),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _hideTimer?.cancel();
@@ -729,13 +754,28 @@ class _PlayerScreenState extends State<PlayerScreen>
       canPop: _canPop,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
+
+        // 1. 右侧配置面板优先关闭，不退出播放
         if (_panelOpen) {
           _closePanel();
-        } else if (_controlsVisible) {
+          return;
+        }
+
+        // 2. 控制条可见时，先隐藏控制条
+        if (_controlsVisible) {
           setState(() => _controlsVisible = false);
           _hideTimer?.cancel();
-        } else {
+          return;
+        }
+
+        // 3. 双击返回退出：第一次按返回显示提示，2 秒内再按一次才退出
+        final now = DateTime.now();
+        if (_lastBackPressedAt != null &&
+            now.difference(_lastBackPressedAt!) < const Duration(seconds: 2)) {
           _exit();
+        } else {
+          _lastBackPressedAt = now;
+          _showExitTip();
         }
       },
       child: Scaffold(
@@ -1143,13 +1183,6 @@ class _PlayerScreenState extends State<PlayerScreen>
                           ),
                         ),
                       const Spacer(),
-                      Text(
-                        '单击 显示/隐藏  ·  双击 快进退/播放',
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          color: Colors.white.withValues(alpha: 0.85),
-                        ),
-                      ),
                     ],
                   ),
                 ],
@@ -1187,57 +1220,55 @@ class _PlayerScreenState extends State<PlayerScreen>
       required VoidCallback onTap,
       String? detail,
     }) {
-      return TvFocusable(
-        onTap: onTap,
-        scale: 1.01,
-        builder: (context, focused) {
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 130),
-            margin: const EdgeInsets.only(bottom: 5),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: focused
-                  ? Theme.of(context).colorScheme.surfaceContainerHigh
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: focused
-                    ? Theme.of(context).colorScheme.secondary
-                    : Colors.transparent,
+      return DpadFocusable(
+        onLongSelect: onTap,
+        // scale: 1.01,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 130),
+          margin: const EdgeInsets.only(bottom: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            // color: focused
+            //     ? Theme.of(context).colorScheme.surfaceContainerHigh
+            //     : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              // color: focused
+              //     ? Theme.of(context).colorScheme.secondary
+              //     : Colors.transparent,
+            ),
+          ),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 22,
+                child: selected
+                    ? Icon(
+                        Icons.check_rounded,
+                        size: 17,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
+                    : null,
               ),
-            ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 22,
-                  child: selected
-                      ? Icon(
-                          Icons.check_rounded,
-                          size: 17,
-                          color: Theme.of(context).colorScheme.primary,
-                        )
-                      : null,
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 13.5, color: Colors.white),
                 ),
-                Expanded(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 13.5, color: Colors.white),
+              ),
+              if (detail != null)
+                Text(
+                  detail,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.white.withValues(alpha: 0.75),
                   ),
                 ),
-                if (detail != null)
-                  Text(
-                    detail,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.white.withValues(alpha: 0.75),
-                    ),
-                  ),
-              ],
-            ),
-          );
-        },
+            ],
+          ),
+        ),
       );
     }
 
@@ -1253,10 +1284,12 @@ class _PlayerScreenState extends State<PlayerScreen>
             runSpacing: 8,
             children: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
                 .map(
-                  (speed) => TvChip(
+                  (speed) => TButton(
                     label: '${speed}x',
-                    selected: _speed == speed,
-                    onTap: () async {
+                    color: Theme.of(context).colorScheme.primary
+                        .withValues(alpha: _speed == speed ? 0.5 : 1),
+                    // selected: _speed == speed,
+                    onClick: () async {
                       await _player.setRate(speed);
                       setState(() => _speed = speed);
                       _panelMessage = '播放速度 ${speed}x';
@@ -1275,12 +1308,16 @@ class _PlayerScreenState extends State<PlayerScreen>
             runSpacing: 8,
             children: SettingsService.seekIntervalOptions
                 .map(
-                  (seconds) => TvChip(
+                  (seconds) => TButton(
                     label: '$seconds秒',
-                    selected:
-                        widget.controller.settings.seekIntervalSeconds ==
-                        seconds,
-                    onTap: () async {
+                    color: Theme.of(context).colorScheme.primary.withValues(
+                      alpha:
+                          widget.controller.settings.seekIntervalSeconds ==
+                              seconds
+                          ? 0.5
+                          : 1,
+                    ),
+                    onClick: () async {
                       await widget.controller.setSeekIntervalSeconds(seconds);
                       if (!mounted) return;
                       setState(() => _panelMessage = '跳转步长已设为 $seconds 秒');
@@ -1293,19 +1330,18 @@ class _PlayerScreenState extends State<PlayerScreen>
           section('画面'),
           Row(
             children: [
-              TvChip(
+              TButton(
                 label: '适应画面',
-                selected: _fit == BoxFit.contain,
-                onTap: () => setState(() {
+                // selected: _fit == BoxFit.contain,
+                onClick: () => setState(() {
                   _fit = BoxFit.contain;
                   _panelMessage = '已切换为适应画面';
                 }),
               ),
               const SizedBox(width: 8),
-              TvChip(
+              TButton(
                 label: '铺满屏幕',
-                selected: _fit == BoxFit.cover,
-                onTap: () => setState(() {
+                onClick: () => setState(() {
                   _fit = BoxFit.cover;
                   _panelMessage = '已切换为铺满屏幕';
                 }),

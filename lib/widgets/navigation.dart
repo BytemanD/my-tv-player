@@ -1,7 +1,6 @@
 import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/menu_controller.dart';
-import 'package:luma_tv/core/common/log.dart';
 import 'package:provider/provider.dart';
 
 class NavRail extends StatelessWidget {
@@ -23,7 +22,6 @@ class NavRail extends StatelessWidget {
         ),
       );
       if (entry.key == menuController.index) {
-        logger.d('request focus: ${entry.value.label}');
         item.focusNode?.requestFocus();
       }
       return Focus(focusNode: FocusNode(), child: item);
@@ -33,7 +31,7 @@ class NavRail extends StatelessWidget {
       width: 104,
       margin: const EdgeInsets.fromLTRB(18, 18, 0, 18),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        color: Theme.of(context).colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(26),
       ),
       child: Column(
@@ -80,7 +78,7 @@ class _NavItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected
               ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
+              : Theme.of(context).colorScheme.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Column(

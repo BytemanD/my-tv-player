@@ -50,15 +50,18 @@ class TvUI extends StatelessWidget {
                   alighment: WrapCrossAlignment.start,
                 ),
                 selected: themeController.appTheme.id == option.id,
-                onClick: () => {
+                onClick: () async {
                   // controller.setTheme(option.id)
-                  context.read<ThemeController>().setTheme(option.id),
+                  await themeController.setTheme(option.id);
                 },
               ),
           ]),
           TLine(),
           TSwitch(
-            (dark) => context.read<ThemeController>().setDark(dark),
+            (dark) async {
+              await themeController.setDark(dark);
+            },
+            value: themeController.appTheme.dark,
             title: "深色",
             subTitle: "启用深色模式",
           ),

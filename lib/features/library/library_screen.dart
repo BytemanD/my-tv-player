@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 // import 'package:luma_tv/core/luma_colors.dart';
 import 'package:luma_tv/widgets/button.dart';
+import 'package:luma_tv/widgets/dialog.dart';
 import 'package:luma_tv/widgets/divider.dart';
 import 'package:luma_tv/widgets/selector.dart';
 import 'package:luma_tv/widgets/space.dart';
@@ -12,7 +13,6 @@ import '../../data/models.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/media_cards.dart';
 import '../detail/detail_screen.dart';
-import '../sources/add_source_dialog.dart';
 
 enum LibraryKind {
   all('全部'),

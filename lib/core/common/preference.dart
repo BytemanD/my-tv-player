@@ -1,7 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-final prefs = SharedPreferencesAsync();
-
 enum Options {
   kLanguage('tmdb_language'),
   kOnboarding('onboarding_complete'),
@@ -13,12 +11,16 @@ enum Options {
   kRememberPlaybackSpeed('remember_playback_speed'),
   kLastPlaybackSpeed('last_playback_speed'),
   kThemeId('theme_id'),
-  kThemeMode('theme_mode');
+  kThemeDark('theme_dark');
 
   final String key;
   const Options(this.key);
 }
 
-Future<SharedPreferences> loadSharedPreferences() {
-  return SharedPreferences.getInstance();
+Future<SharedPreferencesWithCache> loadSharedPreferences() {
+  return SharedPreferencesWithCache.create(
+    cacheOptions: SharedPreferencesWithCacheOptions(
+      allowList: Options.values.map((x) => x.key).toSet(),
+    ),
+  );
 }

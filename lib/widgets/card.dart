@@ -1,5 +1,5 @@
+import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
-import 'package:luma_tv/widgets/tv_focusable.dart';
 
 class TCard extends StatelessWidget {
   final Widget child;

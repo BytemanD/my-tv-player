@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:luma_tv/widgets/button.dart';
+import 'package:luma_tv/widgets/dialog.dart';
 import 'package:luma_tv/widgets/text.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/app_controller.dart';
-import '../sources/add_source_dialog.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -205,13 +205,6 @@ class _CopyColumn extends StatelessWidget {
                 icon: Icons.lock_open_rounded,
                 onClick: controller.requestStorageAccess,
               ),
-            // _actionButton(
-            //   label: '授予文件访问权限',
-            //   icon: Icons.lock_open_rounded,
-            //   autofocus: true,
-            //   onTap: controller.requestStorageAccess,
-            //   outline: true,
-            // ),
             TButton(
               label: hasSources ? '再添加一个目录' : '添加媒体目录',
               icon: Icons.folder_open_rounded,

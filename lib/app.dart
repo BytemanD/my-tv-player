@@ -1,3 +1,4 @@
+import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/menu_controller.dart';
 import 'package:luma_tv/controllers/message_controller.dart';
@@ -17,7 +18,6 @@ import 'features/shell/main_shell.dart';
 import 'features/home/home_screen.dart';
 import 'widgets/button.dart';
 import 'widgets/logo.dart';
-import 'widgets/tv_focusable.dart';
 
 class LumaApp extends StatefulWidget {
   const LumaApp({super.key});
@@ -57,8 +57,8 @@ class _LumaAppState extends State<LumaApp> {
       database: database,
       repository: repository,
     );
-    themeController = ThemeController(prefs);
-    themeController.load();
+    themeController = ThemeController(settingService);
+    await themeController.load();
 
     menuController = AppMenuController();
 
