@@ -53,9 +53,16 @@ class TH3 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: color),
+    return Container(
+      margin: EdgeInsets.all(4),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w500,
+          color: color,
+        ),
+      ),
     );
   }
 }
