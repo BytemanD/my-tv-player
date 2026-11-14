@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:luma_tv/controllers/theme_controller.dart';
 import 'package:luma_tv/widgets/button.dart';
+import 'package:luma_tv/widgets/player_panel.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:path/path.dart' as p;
@@ -15,7 +15,6 @@ import '../../controllers/app_controller.dart';
 import '../../core/common/utils.dart';
 // import '../../core/theme.dart';
 import '../../data/models.dart';
-import '../../data/settings_service.dart';
 
 class PlayerScreen extends StatefulWidget {
   const PlayerScreen({
@@ -59,6 +58,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     with SingleTickerProviderStateMixin {
   late final Player _player;
   late final VideoController _videoController;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final FocusNode _playerFocus = FocusNode(debugLabel: 'player');
   final FocusScopeNode _panelFocus = FocusScopeNode(debugLabel: 'player-panel');
   final List<StreamSubscription<dynamic>> _subscriptions = [];
@@ -124,28 +124,9 @@ class _PlayerScreenState extends State<PlayerScreen>
   String? _volumeFlash;
   Timer? _volumeFlashTimer;
 
-  late final AnimationController _panelController;
-  late final Animation<Offset> _panelSlide;
-
-  bool get _panelVisible =>
-      _panelOpen || _panelController.isAnimating || _panelController.value != 0;
-
   @override
   void initState() {
     super.initState();
-    _panelController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 320),
-      reverseDuration: const Duration(milliseconds: 240),
-    );
-    _panelSlide = Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero)
-        .animate(
-          CurvedAnimation(
-            parent: _panelController,
-            curve: Curves.easeOutCubic,
-            reverseCurve: Curves.easeInCubic,
-          ),
-        );
     _index = widget.initialIndex.clamp(0, widget.queue.length - 1);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     WakelockPlus.enable();
@@ -455,10 +436,12 @@ class _PlayerScreenState extends State<PlayerScreen>
       return KeyEventResult.ignored;
     }
 
-    if (_panelOpen) {
+    final scaffoldState = _scaffoldKey.currentState;
+    final isDrawerOpen = scaffoldState?.isEndDrawerOpen ?? false;
+    if (isDrawerOpen) {
       if (event.logicalKey == LogicalKeyboardKey.escape ||
           event.logicalKey == LogicalKeyboardKey.goBack) {
-        _closePanel();
+        scaffoldState?.closeEndDrawer();
         return KeyEventResult.handled;
       }
       return KeyEventResult.ignored;
@@ -466,11 +449,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     final key = event.logicalKey;
     if (key == LogicalKeyboardKey.escape || key == LogicalKeyboardKey.goBack) {
-      if (_panelOpen) {
-        _closePanel();
-        return KeyEventResult.handled;
-      }
-      // 其余返回键交给 PopScope 统一处理（面板/控制条/双击退出）
+      // 其余返回键交给 PopScope 统一处理（控制条/双击退出）
       return KeyEventResult.ignored;
     }
     if (key == LogicalKeyboardKey.arrowLeft) {
@@ -682,26 +661,16 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   void _openPanel() {
     setState(() {
-      _panelOpen = true;
       _controlsVisible = false;
       _panelMessage = null;
     });
     _hideTimer?.cancel();
-    _panelController.forward(from: 0);
+    _scaffoldKey.currentState?.openEndDrawer();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _panelFocus.requestFocus();
       _panelFocus.nextFocus();
     });
-  }
-
-  void _closePanel() {
-    _panelController.reverse().then((_) {
-      if (mounted) {
-        setState(() => _panelOpen = false);
-      }
-    });
-    _playerFocus.requestFocus();
   }
 
   Future<void> _exit() async {
@@ -739,7 +708,6 @@ class _PlayerScreenState extends State<PlayerScreen>
     _tapSuppressTimer?.cancel();
     _holdTimer?.cancel();
     _volumeFlashTimer?.cancel();
-    _panelController.dispose();
     _player.dispose();
     _playerFocus.dispose();
     _panelFocus.dispose();
@@ -755,9 +723,9 @@ class _PlayerScreenState extends State<PlayerScreen>
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
 
-        // 1. 右侧配置面板优先关闭，不退出播放
-        if (_panelOpen) {
-          _closePanel();
+        final scaffoldState = _scaffoldKey.currentState;
+        if (scaffoldState?.isEndDrawerOpen ?? false) {
+          scaffoldState?.closeEndDrawer();
           return;
         }
 
@@ -779,7 +747,28 @@ class _PlayerScreenState extends State<PlayerScreen>
         }
       },
       child: Scaffold(
+        key: _scaffoldKey,
         backgroundColor: Colors.black,
+        endDrawer: SizedBox(
+          width: 410,
+          child: PlayerPanel(
+            controller: widget.controller,
+            player: _player,
+            speed: _speed,
+            fit: _fit,
+            panelMessage: _panelMessage,
+            onSpeedChanged: (s) => setState(() => _speed = s),
+            onFitChanged: (f) => setState(() => _fit = f),
+            onSubtitleChanged: (track) => _setSubtitle(track),
+            onAudioChanged: (track) async {
+              await _player.setAudioTrack(track);
+              setState(() => _panelMessage = '已切换音轨');
+            },
+            onPlayNext: () => _playIndex(_index + 1),
+            onSeekIntervalChanged: (seconds) {},
+            onPanelMessageChanged: (msg) => setState(() => _panelMessage = msg),
+          ),
+        ),
         body: Listener(
           behavior: HitTestBehavior.translucent,
           onPointerDown: (event) {
@@ -860,27 +849,6 @@ class _PlayerScreenState extends State<PlayerScreen>
                       onBack: _exit,
                     ),
                   _buildControls(),
-                  if (_panelVisible) ...[
-                    Positioned.fill(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: _closePanel,
-                        child: Container(
-                          color: Colors.black.withValues(alpha: 0.45),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 0,
-                      bottom: 0,
-                      right: 0,
-                      width: 410,
-                      child: SlideTransition(
-                        position: _panelSlide,
-                        child: _buildPanel(),
-                      ),
-                    ),
-                  ],
                   if (_seekFlash != null)
                     IgnorePointer(
                       child: Align(
@@ -1194,309 +1162,6 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
-  Widget _buildPanel() {
-    final tracks = _player.state.tracks;
-    final currentSubtitle = _player.state.track.subtitle.id;
-    final currentAudio = _player.state.track.audio.id;
-
-    Widget section(String title) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 16, bottom: 8),
-        child: Text(
-          title,
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1.4,
-            color: Colors.white,
-          ),
-        ),
-      );
-    }
-
-    Widget option(
-      String label, {
-      required bool selected,
-      required VoidCallback onTap,
-      String? detail,
-    }) {
-      return DpadFocusable(
-        onLongSelect: onTap,
-        // scale: 1.01,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 130),
-          margin: const EdgeInsets.only(bottom: 5),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            // color: focused
-            //     ? Theme.of(context).colorScheme.surfaceContainerHigh
-            //     : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              // color: focused
-              //     ? Theme.of(context).colorScheme.secondary
-              //     : Colors.transparent,
-            ),
-          ),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 22,
-                child: selected
-                    ? Icon(
-                        Icons.check_rounded,
-                        size: 17,
-                        color: Theme.of(context).colorScheme.primary,
-                      )
-                    : null,
-              ),
-              Expanded(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 13.5, color: Colors.white),
-                ),
-              ),
-              if (detail != null)
-                Text(
-                  detail,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.white.withValues(alpha: 0.75),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // —— 视频 Tab ——
-    final videoTab = SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          section('播放速度'),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
-                .map(
-                  (speed) => TButton(
-                    label: '${speed}x',
-                    color: Theme.of(context).colorScheme.primary
-                        .withValues(alpha: _speed == speed ? 0.5 : 1),
-                    // selected: _speed == speed,
-                    onClick: () async {
-                      await _player.setRate(speed);
-                      setState(() => _speed = speed);
-                      _panelMessage = '播放速度 ${speed}x';
-                      if (widget.controller.settings.rememberPlaybackSpeed) {
-                        await widget.controller.setLastPlaybackSpeed(speed);
-                      }
-                    },
-                  ),
-                )
-                .toList(),
-          ),
-          const SizedBox(height: 24),
-          section('快进 / 快退'),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: SettingsService.seekIntervalOptions
-                .map(
-                  (seconds) => TButton(
-                    label: '$seconds秒',
-                    color: Theme.of(context).colorScheme.primary.withValues(
-                      alpha:
-                          widget.controller.settings.seekIntervalSeconds ==
-                              seconds
-                          ? 0.5
-                          : 1,
-                    ),
-                    onClick: () async {
-                      await widget.controller.setSeekIntervalSeconds(seconds);
-                      if (!mounted) return;
-                      setState(() => _panelMessage = '跳转步长已设为 $seconds 秒');
-                    },
-                  ),
-                )
-                .toList(),
-          ),
-          const SizedBox(height: 24),
-          section('画面'),
-          Row(
-            children: [
-              TButton(
-                label: '适应画面',
-                // selected: _fit == BoxFit.contain,
-                onClick: () => setState(() {
-                  _fit = BoxFit.contain;
-                  _panelMessage = '已切换为适应画面';
-                }),
-              ),
-              const SizedBox(width: 8),
-              TButton(
-                label: '铺满屏幕',
-                onClick: () => setState(() {
-                  _fit = BoxFit.cover;
-                  _panelMessage = '已切换为铺满屏幕';
-                }),
-              ),
-            ],
-          ),
-          if (_index + 1 < widget.queue.length) ...[
-            const SizedBox(height: 24),
-            section('播放'),
-            option(
-              '播放下一集',
-              selected: false,
-              onTap: () => _playIndex(_index + 1),
-            ),
-          ],
-        ],
-      ),
-    );
-
-    // —— 字幕 Tab ——
-    final subtitleWidgets = <Widget>[
-      section('字幕'),
-      option(
-        '关闭字幕',
-        selected: currentSubtitle == 'no',
-        onTap: () => _setSubtitle(SubtitleTrack.no()),
-      ),
-      option(
-        '自动',
-        selected: currentSubtitle == 'auto',
-        onTap: () => _setSubtitle(SubtitleTrack.auto()),
-      ),
-    ];
-    for (var i = 0; i < tracks.subtitle.length; i++) {
-      final track = tracks.subtitle[i];
-      if (track.id == 'auto' || track.id == 'no') continue;
-      subtitleWidgets.add(
-        option(
-          track.title?.trim().isNotEmpty == true
-              ? track.title!
-              : (track.language ?? '字幕 ${i + 1}'),
-          selected: currentSubtitle == track.id,
-          detail: track.language,
-          onTap: () => _setSubtitle(track),
-        ),
-      );
-    }
-    final subtitleTab = SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: subtitleWidgets,
-      ),
-    );
-
-    // —— 音频 Tab ——
-    final audioWidgets = <Widget>[section('音轨')];
-    for (var i = 0; i < tracks.audio.length; i++) {
-      final track = tracks.audio[i];
-      audioWidgets.add(
-        option(
-          track.title?.trim().isNotEmpty == true
-              ? track.title!
-              : (track.language ?? '音轨 ${i + 1}'),
-          selected: currentAudio == track.id,
-          detail: track.language,
-          onTap: () async {
-            await _player.setAudioTrack(track);
-            _panelMessage = '已切换音轨';
-            setState(() {});
-          },
-        ),
-      );
-    }
-    final audioTab = SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: audioWidgets,
-      ),
-    );
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap:
-          () {}, // Absorb taps inside the panel so they don't reach the scrim.
-      child: FocusScope(
-        node: _panelFocus,
-        // autofocus: true,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary
-                .withValues(alpha: 0.70),
-            border: Border(
-              left: BorderSide(
-                color: Theme.of(context).colorScheme.primary,
-                width: 1,
-              ),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: DefaultTabController(
-                  length: 3,
-                  child: Column(
-                    children: [
-                      TabBar(
-                        isScrollable: false,
-                        labelColor: Colors.white,
-                        unselectedLabelColor: Colors.white.withValues(
-                          alpha: 0.7,
-                        ),
-                        indicatorColor: Theme.of(context).colorScheme.primary
-                            .withValues(alpha: 0.7),
-                        indicatorWeight: 3,
-                        labelStyle: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        unselectedLabelStyle: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        tabs: const [
-                          Tab(text: '视频'),
-                          Tab(text: '字幕'),
-                          Tab(text: '音频'),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Expanded(
-                        child: TabBarView(
-                          children: [videoTab, subtitleTab, audioTab],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (_panelMessage != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 14, left: 20, right: 20),
-                  child: Text(
-                    _panelMessage!,
-                    style: TextStyle(fontSize: 12, color: Colors.white),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Future<void> _setSubtitle(SubtitleTrack track) async {
     try {

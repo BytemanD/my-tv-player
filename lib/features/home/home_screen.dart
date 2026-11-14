@@ -233,10 +233,10 @@ class _AccessBanner extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Expanded(child: Text('Luma 还没有文件访问权限，扫描和播放可能无法读取外接磁盘。')),
-          TvButton(
+          TButton(
             label: '去授权',
-            compact: true,
-            onTap: controller.requestStorageAccess,
+            // compact: true,
+            onClick: controller.requestStorageAccess,
           ),
         ],
       ),

@@ -183,7 +183,7 @@ class _ErrorContent extends StatelessWidget {
             style: const TextStyle(fontSize: 13.5, height: 1.6),
           ),
           const SizedBox(height: 28),
-          TvButton(label: '重试', icon: Icons.refresh_rounded, onTap: onRetry),
+          TButton(label: '重试', icon: Icons.refresh_rounded, onClick: onRetry),
         ],
       ),
     );
