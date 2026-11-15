@@ -1,14 +1,14 @@
 import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
 
-enum Variant { elevated, outlined, filled, text, ghost }
+// enum _Variant { elevated, outlined, filled, text, ghost }
 
 class LButton extends StatelessWidget {
   final String? label;
   final IconData? icon;
   final Color? color;
   final double? size;
-  final Variant variant;
+  final String variant;
 
   final VoidCallback? onClick;
   final bool autofocus;
@@ -21,43 +21,39 @@ class LButton extends StatelessWidget {
     this.color,
     this.icon,
     this.label,
-    this.variant = Variant.elevated,
+    this.variant = "elevated",
     this.borderRadius = 8,
     this.onClick,
     this.enabled = true,
     this.autofocus = false,
   });
 
-  IconButton _iconButton(
-    BuildContext context, {
-    Variant variant = Variant.elevated,
-  }) {
+  IconButton _iconButton(BuildContext context, {String variant = "elevated"}) {
     final backgroundColor = switch (variant) {
-      Variant.elevated =>
-        color ?? Theme.of(context).colorScheme.surfaceContainer,
-      Variant.outlined => Colors.transparent,
-      Variant.filled => color ?? Theme.of(context).colorScheme.primary,
+      "elevated" => color ?? Theme.of(context).colorScheme.surfaceContainer,
+      "outlined" => Colors.transparent,
+      "filled" => color ?? Theme.of(context).colorScheme.primary,
       _ => null,
     };
     final iconColor = switch (variant) {
-      Variant.elevated => color == null ? null : Colors.white,
-      Variant.outlined => color,
-      Variant.filled => Theme.of(context).colorScheme.onPrimary,
-      Variant.text => color,
+      "elevated" => color == null ? null : Colors.white,
+      "outlined" => color,
+      "filled" => Theme.of(context).colorScheme.onPrimary,
+      "text" => color,
       _ => null,
     };
     final borderColor = switch (variant) {
-      Variant.elevated => null,
-      Variant.outlined => color ?? Theme.of(context).colorScheme.outline,
-      Variant.filled => color ?? Theme.of(context).colorScheme.primary,
-      Variant.text => null,
+      "elevated" => null,
+      "outlined" => color ?? Theme.of(context).colorScheme.outline,
+      "filled" => color ?? Theme.of(context).colorScheme.primary,
+      "text" => null,
       _ => Theme.of(context).colorScheme.outline,
     };
     return IconButton(
       icon: Icon(icon),
       color: iconColor,
       style: IconButton.styleFrom(
-        elevation: variant == Variant.elevated ? 3 : 0,
+        elevation: variant == "elevated" ? 3 : 0,
         // iconSize: 18,
         // minimumSize: const Size(32, 32), // 最小尺寸
         // maximumSize: const Size(32, 32),
@@ -89,7 +85,6 @@ class LButton extends StatelessWidget {
                 foregroundColor: Colors.white,
               )
             : null,
-        // style: _buttonStyle(context),
       );
     }
 
@@ -107,7 +102,7 @@ class LButton extends StatelessWidget {
 
   Widget _outlinedButton(BuildContext context) {
     if (icon != null && label == null) {
-      return _iconButton(context, variant: Variant.outlined);
+      return _iconButton(context, variant: "outlined");
     }
     if (icon != null) {
       return OutlinedButton.icon(
@@ -141,7 +136,7 @@ class LButton extends StatelessWidget {
 
   Widget _filledButton(BuildContext context) {
     if (icon != null && label == null) {
-      return _iconButton(context, variant: Variant.filled);
+      return _iconButton(context, variant: "filled");
     }
     if (icon != null) {
       return FilledButton.icon(
@@ -155,7 +150,6 @@ class LButton extends StatelessWidget {
                 foregroundColor: Colors.white,
               )
             : null,
-        // style: _buttonStyle(context),
       );
     }
     return FilledButton(
@@ -172,7 +166,7 @@ class LButton extends StatelessWidget {
 
   Widget _textButton(BuildContext context) {
     if (icon != null && label == null) {
-      return _iconButton(context, variant: Variant.text);
+      return _iconButton(context, variant: "text");
     }
     if (icon != null) {
       return TextButton.icon(
@@ -180,7 +174,6 @@ class LButton extends StatelessWidget {
         icon: Icon(icon),
         label: Text(label ?? ""),
         style: FilledButton.styleFrom(foregroundColor: color),
-        // style: _buttonStyle(context),
       );
     }
     return TextButton(
@@ -191,7 +184,7 @@ class LButton extends StatelessWidget {
   }
 
   Widget _ghostButton(BuildContext context) {
-    return DashedBorderButton(
+    return _DashedBorderButton(
       onPressed: enabled ? onClick ?? () {} : null,
       color: color ?? Theme.of(context).colorScheme.primary,
       child: _textButton(context),
@@ -207,20 +200,112 @@ class LButton extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(left: 4, right: 4, top: 1, bottom: 1),
         child: switch (variant) {
-          Variant.elevated => _elevatedButton(context),
-          Variant.outlined => _outlinedButton(context),
-          Variant.filled => _filledButton(context),
-          Variant.text => _textButton(context),
-          Variant.ghost => _ghostButton(context),
+          "elevated" => _elevatedButton(context),
+          "outlined" => _outlinedButton(context),
+          "filled" => _filledButton(context),
+          "text" => _textButton(context),
+          "ghost" => _ghostButton(context),
+          _ => _elevatedButton(context),
         },
       ),
     );
   }
+
+  static LButton outlined({
+    String? label,
+    IconData? icon,
+    Color? color,
+    double? size,
+    VoidCallback? onClick,
+    bool autofocus = false,
+    double borderRadius = 8,
+    bool enabled = true,
+  }) {
+    return LButton(
+      label: label,
+      icon: icon,
+      color: color,
+      size: size,
+      onClick: onClick,
+      autofocus: autofocus,
+      borderRadius: borderRadius,
+      enabled: enabled,
+      variant: "outlined",
+    );
+  }
+
+  static LButton filled({
+    String? label,
+    IconData? icon,
+    Color? color,
+    double? size,
+    VoidCallback? onClick,
+    bool autofocus = false,
+    double borderRadius = 8,
+    bool enabled = true,
+  }) {
+    return LButton(
+      label: label,
+      icon: icon,
+      color: color,
+      size: size,
+      onClick: onClick,
+      autofocus: autofocus,
+      borderRadius: borderRadius,
+      enabled: enabled,
+      variant: "filled",
+    );
+  }
+
+  static LButton text({
+    String? label,
+    IconData? icon,
+    Color? color,
+    double? size,
+    VoidCallback? onClick,
+    bool autofocus = false,
+    double borderRadius = 8,
+    bool enabled = true,
+  }) {
+    return LButton(
+      label: label,
+      icon: icon,
+      color: color,
+      size: size,
+      onClick: onClick,
+      autofocus: autofocus,
+      borderRadius: borderRadius,
+      enabled: enabled,
+      variant: "text",
+    );
+  }
+
+  static LButton ghost({
+    String? label,
+    IconData? icon,
+    Color? color,
+    double? size,
+    VoidCallback? onClick,
+    bool autofocus = false,
+    double borderRadius = 8,
+    bool enabled = true,
+  }) {
+    return LButton(
+      label: label,
+      icon: icon,
+      color: color,
+      size: size,
+      onClick: onClick,
+      autofocus: autofocus,
+      borderRadius: borderRadius,
+      enabled: enabled,
+      variant: "ghost",
+    );
+  }
 }
 
-class DashedBorderButton extends StatelessWidget {
-  const DashedBorderButton({
-    super.key,
+class _DashedBorderButton extends StatelessWidget {
+  const _DashedBorderButton({
     required this.onPressed,
     required this.child,
     this.color,

@@ -1,11 +1,10 @@
 import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
-import 'package:luma_tv/widgets/divider.dart';
+
 import 'package:luma_tv/widgets/luma_widgets/button.dart';
+import 'package:luma_tv/widgets/luma_widgets/chip.dart';
 import 'package:luma_tv/widgets/luma_widgets/selector.dart';
 import 'package:luma_tv/widgets/luma_widgets/text.dart';
-import 'package:luma_tv/widgets/text.dart';
-import 'package:media_kit/media_kit.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,39 +13,47 @@ class HomePage extends StatefulWidget {
   State<StatefulWidget> createState() => _HomePage();
 }
 
+final variants = ["outlined", "filled", "text", "ghost"];
+
 class _ButtonsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TH3("按钮"),
-        for (Variant variant in Variant.values) ...[
-          Row(
+        LSubTitle("default"),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            LButton(label: "添加", icon: Icons.add),
+            LButton(label: "添加"),
+            LButton(icon: Icons.add),
+            Divider(height: 12),
+          ],
+        ),
+        LH3("变体"),
+        for (String variant in variants) ...[
+          Wrap(
             children: [
-              TH4(variant.name),
-              TDivider(),
+              LSubTitle(variant),
               LButton(variant: variant, label: "添加", icon: Icons.add),
               LButton(variant: variant, label: "添加"),
               LButton(variant: variant, icon: Icons.add),
             ],
           ),
-          TDivider(height: 2),
         ],
-        TDivider(),
-        TH3("颜色"),
-        for (Variant variant in Variant.values) ...[
+        Divider(height: 12),
+        LH3("颜色"),
+        for (String variant in variants) ...[
           Row(
             children: [
-              TH4(variant.name),
-              TDivider(),
+              LH4(variant),
               LButton(
                 variant: variant,
                 label: "添加",
                 icon: Icons.add,
                 color: Colors.cyan,
               ),
-
               LButton(variant: variant, label: "添加", color: Colors.cyan),
               LButton(variant: variant, icon: Icons.add, color: Colors.cyan),
               LButton(
@@ -78,19 +85,19 @@ class _LongTextDemo extends State<LongTextDemo> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TLine(),
+        Divider(height: 1),
         Row(
           children: [
             LSelector(
               ["1行", "2行", "3行"],
               label: "最大行数",
-              onChanged: (v) => {maxLines = v + 1, setState(() {})},
+              onSelect: (v) => {maxLines = v + 1, setState(() {})},
             ),
-            TDivider(),
+            Divider(),
             LSelector(
               ["200", "400", "600"],
               label: "最大宽度",
-              onChanged: (v) => {maxWidth = (v + 1) * 200, setState(() {})},
+              onSelect: (v) => {maxWidth = (v + 1) * 200, setState(() {})},
             ),
           ],
         ),
@@ -110,11 +117,9 @@ class _SelectorWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TH3("选择器"),
-        TDivider(),
         LSelector(["全部", "电影", "剧集"]),
-        TDivider(),
-        LSelector(["评分", "时间"], label: "排序"),
+        Divider(height: 20),
+        LSelector(["评分", "时间"], label: "排序", color: Colors.green),
       ],
     );
   }
@@ -131,15 +136,72 @@ class _TextsWidget extends StatelessWidget {
         LH1("header 1"),
         LH2("header 2"),
         LH3("header 3"),
-        TDivider(height: 20),
+        Divider(height: 20),
 
         LText("普通文本"),
         LText("普通蓝色文本", color: Colors.blue),
-        TDivider(height: 20),
+        Divider(height: 20),
         LTitle("标题 title"),
         LSubTitle("子标题"),
-        TDivider(height: 20),
+        Divider(height: 20),
         LongTextDemo(),
+      ],
+    );
+  }
+}
+
+class _ChipWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 4,
+          children: [
+            LChip("chip"),
+            LChip("rounded chip", rounded: true),
+            LChip("icon chip", icon: Icons.star),
+          ],
+        ),
+        const SizedBox(height: 10),
+        LH3("filled"),
+        Wrap(
+          spacing: 4,
+          children: [
+            LChip.filled(" rounded chip", icon: Icons.star),
+            LChip.filled("filled chip", icon: Icons.star, rounded: true),
+          ],
+        ),
+        LH3("text"),
+        Wrap(
+          spacing: 4,
+          children: [
+            LChip.text("5.0", icon: Icons.star, iconColor: Colors.amber),
+          ],
+        ),
+        const SizedBox(height: 10),
+        LH3("color"),
+        Wrap(
+          spacing: 4,
+          children: [
+            LChip(
+              " chip",
+              icon: Icons.star,
+              variant: "filled",
+              color: Colors.amber,
+            ),
+            LChip("chip", color: Colors.amber, icon: Icons.star, rounded: true),
+          ],
+        ),
+        LH3("pill"),
+        Wrap(
+          spacing: 4,
+          children: [
+            LPill("年份", "2026"),
+            LPill("类型", "电影", color: Theme.of(context).colorScheme.secondary),
+          ],
+        ),
       ],
     );
   }
@@ -147,10 +209,11 @@ class _TextsWidget extends StatelessWidget {
 
 class _HomePage extends State<HomePage> {
   int _index = 0;
-  final List<Widget> _pages = [
+  final _pages = [
     _ButtonsWidget(),
     _SelectorWidget(),
     _TextsWidget(),
+    _ChipWidget(),
   ];
 
   // const _HomePage();
@@ -159,7 +222,6 @@ class _HomePage extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Luma widgets')),
-
       body: Row(
         children: [
           // 左侧导航
@@ -179,6 +241,10 @@ class _HomePage extends State<HomePage> {
               NavigationRailDestination(
                 icon: Icon(Icons.text_fields_outlined),
                 label: Text('Text'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.tag),
+                label: Text('Chip'),
               ),
             ],
           ),
@@ -223,7 +289,5 @@ class TvWidgetsApp extends StatelessWidget {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  MediaKit.ensureInitialized();
-  // runApp(const LumaApp());
   runApp(const TvWidgetsApp());
 }

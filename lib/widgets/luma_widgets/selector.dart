@@ -1,58 +1,75 @@
-import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
-import 'package:luma_tv/widgets/divider.dart';
-import 'package:luma_tv/widgets/space.dart';
-import 'package:luma_tv/widgets/text.dart';
+import 'package:luma_tv/widgets/luma_widgets/text.dart';
 
 class LSelector extends StatefulWidget {
   final List<String> items;
-  final ValueChanged<int>? onChanged;
+  final ValueChanged<int>? onSelect;
   final String? label;
+  final double radius;
+  final Color? color;
+  final Color? labelColor;
 
-  const LSelector(this.items, {super.key, this.onChanged, this.label});
+  const LSelector(
+    this.items, {
+    super.key,
+    this.onSelect,
+    this.label,
+    this.color,
+    this.labelColor,
+    this.radius = 8,
+  });
 
   @override
   State<StatefulWidget> createState() => _LSelect();
 }
 
 class _LSelect extends State<LSelector> {
-  int value = 0;
-  int focuse = 0;
-  Map<int, bool> focusMap = {};
+  int _selected = 0;
+
+  void emit() {
+    if (widget.onSelect != null) {
+      widget.onSelect!(_selected);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return TSpace([
-      if (widget.label != null) ...[TSubTitle(widget.label!), TDivider()],
-      for (int i = 0; i < widget.items.length; i++)
-        DpadFocusable(
-          // autofocus: true,
-          onFocusChange: (value) => {focusMap[i] = value, setState(() {})},
-          child: TChip(
-            widget.items[i],
-            // rounded: false,
-            color: value == i
-                ? null
-                : (focusMap[i] ?? false
-                      ? Theme.of(context).colorScheme.primaryFixed
-                      : Colors.grey),
-            boderWidth: 0,
-            shap: RoundedRectangleBorder(
+    return Wrap(
+      // spacing: 1,
+      children: [
+        if (widget.label != null) ...[
+          LText(widget.label ?? ""),
+          const SizedBox(width: 4),
+        ],
+        ...List.generate(widget.items.length, (index) {
+          final isFirst = index == 0;
+          final isLast = index == widget.items.length - 1;
+          return ChoiceChip(
+            showCheckmark: false,
+            label: Text(widget.items[index]),
+            selected: _selected == index,
+            selectedColor: widget.color,
+            labelStyle: widget.labelColor != null
+                ? TextStyle(color: Colors.white)
+                : null,
+            visualDensity: VisualDensity.comfortable,
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.horizontal(
-                left: i == 0 ? Radius.circular(10) : Radius.zero,
-                right: i == widget.items.length - 1
-                    ? Radius.circular(10)
-                    : Radius.zero,
+                left: isFirst ? Radius.circular(widget.radius) : Radius.zero,
+                right: isLast ? Radius.circular(widget.radius) : Radius.zero,
               ),
             ),
-          ),
-          onSelect: () => {
-            setState(() {
-              value = i;
-              widget.onChanged?.call(value);
-            }),
-          },
-        ),
-    ], space: 1);
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            onSelected: (bool selected) {
+              if (selected) {
+                _selected = index;
+                emit();
+              }
+              setState(() => {});
+            },
+          );
+        }),
+      ],
+    );
   }
 }
