@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:luma_tv/widgets/luma_widgets/_utils.dart';
 
 class LChip extends StatelessWidget {
   final String label;
@@ -32,13 +33,14 @@ class LChip extends StatelessWidget {
   }
 
   Chip _filled(BuildContext context) {
-    final textColor = Theme.of(context).colorScheme.onPrimary;
+    final backgroundColor = color ?? Theme.of(context).colorScheme.primary;
+    final textColor = estimateFrontColor(backgroundColor);
+
     return Chip(
       avatar: icon != null ? Icon(icon!, color: textColor) : null,
       label: Text(label),
       labelStyle: TextStyle(color: textColor),
-      shape: rounded ? StadiumBorder() : null,
-      side: BorderSide.none,
+      shape: StadiumBorder().copyWith(side: BorderSide(color: backgroundColor)),
       backgroundColor: color ?? Theme.of(context).colorScheme.primary,
     );
   }
@@ -68,6 +70,7 @@ class LChip extends StatelessWidget {
       color: color,
       variant: "filled",
       iconColor: iconColor,
+      rounded: rounded,
     );
   }
 
@@ -103,7 +106,10 @@ class LPill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Chip(
-            label: Text(label, style: TextStyle(color: Colors.white)),
+            label: Text(
+              label,
+              style: TextStyle(color: estimateFrontColor(widgetColor)),
+            ),
             backgroundColor: widgetColor,
             side: BorderSide(color: widgetColor),
             shape: RoundedRectangleBorder(

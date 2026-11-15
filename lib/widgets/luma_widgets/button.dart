@@ -1,5 +1,6 @@
 import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
+import 'package:luma_tv/widgets/luma_widgets/_utils.dart';
 
 // enum _Variant { elevated, outlined, filled, text, ghost }
 
@@ -36,7 +37,7 @@ class LButton extends StatelessWidget {
       _ => null,
     };
     final iconColor = switch (variant) {
-      "elevated" => color == null ? null : Colors.white,
+      "elevated" => color == null ? null : estimateFrontColor(color!),
       "outlined" => color,
       "filled" => Theme.of(context).colorScheme.onPrimary,
       "text" => color,
@@ -82,7 +83,7 @@ class LButton extends StatelessWidget {
         style: color != null
             ? ElevatedButton.styleFrom(
                 backgroundColor: color,
-                foregroundColor: Colors.white,
+                foregroundColor: estimateFrontColor(color!),
               )
             : null,
       );
@@ -93,7 +94,7 @@ class LButton extends StatelessWidget {
       style: color != null
           ? ElevatedButton.styleFrom(
               backgroundColor: color,
-              foregroundColor: Colors.white,
+              foregroundColor: estimateFrontColor(color!),
             )
           : null,
       child: Text(label ?? ""),
@@ -147,7 +148,7 @@ class LButton extends StatelessWidget {
         style: color != null
             ? FilledButton.styleFrom(
                 backgroundColor: color,
-                foregroundColor: Colors.white,
+                foregroundColor: estimateFrontColor(color!),
               )
             : null,
       );
@@ -157,7 +158,7 @@ class LButton extends StatelessWidget {
       style: color != null
           ? FilledButton.styleFrom(
               backgroundColor: color,
-              foregroundColor: Colors.white,
+              foregroundColor: estimateFrontColor(color!),
             )
           : null,
       child: Text(label ?? ""),

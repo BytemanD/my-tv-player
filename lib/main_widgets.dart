@@ -2,7 +2,9 @@ import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
 
 import 'package:luma_tv/widgets/luma_widgets/button.dart';
+import 'package:luma_tv/widgets/luma_widgets/carousel.dart';
 import 'package:luma_tv/widgets/luma_widgets/chip.dart';
+import 'package:luma_tv/widgets/luma_widgets/layout.dart';
 import 'package:luma_tv/widgets/luma_widgets/selector.dart';
 import 'package:luma_tv/widgets/luma_widgets/text.dart';
 
@@ -22,47 +24,42 @@ class _ButtonsWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         LSubTitle("default"),
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            LButton(label: "添加", icon: Icons.add),
-            LButton(label: "添加"),
-            LButton(icon: Icons.add),
-            Divider(height: 12),
-          ],
-        ),
+        CenterWrap.small([
+          LButton(label: "添加", icon: Icons.add),
+          LButton(label: "添加"),
+          LButton(icon: Icons.add),
+          Divider(height: 12),
+        ]),
         LH3("变体"),
         for (String variant in variants) ...[
-          Wrap(
-            children: [
-              LSubTitle(variant),
-              LButton(variant: variant, label: "添加", icon: Icons.add),
-              LButton(variant: variant, label: "添加"),
-              LButton(variant: variant, icon: Icons.add),
-            ],
-          ),
+          CenterWrap.small([
+            LSubTitle(variant),
+            const SizedBox(width: 20),
+            LButton(variant: variant, label: "添加", icon: Icons.add),
+            LButton(variant: variant, label: "添加"),
+            LButton(variant: variant, icon: Icons.add),
+          ]),
         ],
         Divider(height: 12),
         LH3("颜色"),
         for (String variant in variants) ...[
-          Row(
-            children: [
-              LH4(variant),
-              LButton(
-                variant: variant,
-                label: "添加",
-                icon: Icons.add,
-                color: Colors.cyan,
-              ),
-              LButton(variant: variant, label: "添加", color: Colors.cyan),
-              LButton(variant: variant, icon: Icons.add, color: Colors.cyan),
-              LButton(
-                variant: variant,
-                icon: Icons.add,
-                color: Theme.of(context).colorScheme.secondary,
-              ),
-            ],
-          ),
+          CenterWrap.small([
+            LH4(variant),
+            const SizedBox(width: 20),
+            LButton(
+              variant: variant,
+              label: "添加",
+              icon: Icons.add,
+              color: Colors.cyan,
+            ),
+            LButton(variant: variant, label: "添加", color: Colors.cyan),
+            LButton(variant: variant, icon: Icons.add, color: Colors.cyan),
+            LButton(
+              variant: variant,
+              icon: Icons.add,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+          ]),
         ],
       ],
     );
@@ -85,22 +82,18 @@ class _LongTextDemo extends State<LongTextDemo> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Divider(height: 1),
-        Row(
-          children: [
-            LSelector(
-              ["1行", "2行", "3行"],
-              label: "最大行数",
-              onSelect: (v) => {maxLines = v + 1, setState(() {})},
-            ),
-            Divider(),
-            LSelector(
-              ["200", "400", "600"],
-              label: "最大宽度",
-              onSelect: (v) => {maxWidth = (v + 1) * 200, setState(() {})},
-            ),
-          ],
-        ),
+        CenterWrap.large([
+          LSelector(
+            ["1行", "2行", "3行"],
+            label: "最大行数",
+            onSelect: (v) => {maxLines = v + 1, setState(() {})},
+          ),
+          LSelector(
+            ["200", "400", "600"],
+            label: "最大宽度",
+            onSelect: (v) => {maxWidth = (v + 1) * 200, setState(() {})},
+          ),
+        ]),
         LText(
           "舷窗外，木星的大红斑正缓缓转过第七象限。林晓把神经接驳线的最后一根探针插进后颈接口，系统提示音在颅腔内响起：“同步率98.7%，记忆备份已完成。",
           maxLines: maxLines,
@@ -143,7 +136,7 @@ class _TextsWidget extends StatelessWidget {
         Divider(height: 20),
         LTitle("标题 title"),
         LSubTitle("子标题"),
-        Divider(height: 20),
+        const SizedBox(height: 8),
         LongTextDemo(),
       ],
     );
@@ -156,54 +149,61 @@ class _ChipWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Wrap(
-          spacing: 4,
-          children: [
-            LChip("chip"),
-            LChip("rounded chip", rounded: true),
-            LChip("icon chip", icon: Icons.star),
-          ],
-        ),
+        CenterWrap.small([
+          LChip("chip"),
+          LChip("rounded chip", rounded: true),
+          LChip("icon chip", icon: Icons.star),
+        ]),
         const SizedBox(height: 10),
         LH3("filled"),
-        Wrap(
-          spacing: 4,
-          children: [
-            LChip.filled(" rounded chip", icon: Icons.star),
-            LChip.filled("filled chip", icon: Icons.star, rounded: true),
-          ],
-        ),
+        CenterWrap.small([
+          LChip.filled("rounded chip", icon: Icons.star, rounded: true),
+          LChip.filled("chip", icon: Icons.star),
+        ]),
         LH3("text"),
-        Wrap(
-          spacing: 4,
-          children: [
-            LChip.text("5.0", icon: Icons.star, iconColor: Colors.amber),
-          ],
-        ),
+        CenterWrap.small([
+          LChip.text("5.0", icon: Icons.star, iconColor: Colors.amber),
+        ]),
         const SizedBox(height: 10),
-        LH3("color"),
-        Wrap(
-          spacing: 4,
-          children: [
-            LChip(
-              " chip",
-              icon: Icons.star,
-              variant: "filled",
-              color: Colors.amber,
-            ),
-            LChip("chip", color: Colors.amber, icon: Icons.star, rounded: true),
-          ],
-        ),
-        LH3("pill"),
-        Wrap(
-          spacing: 4,
-          children: [
-            LPill("年份", "2026"),
-            LPill("类型", "电影", color: Theme.of(context).colorScheme.secondary),
-          ],
-        ),
+        LH3("Color"),
+        CenterWrap.small([
+          LChip.filled(" chip", icon: Icons.star, color: Colors.amber),
+          LChip("chip", color: Colors.amber, icon: Icons.star, rounded: true),
+        ]),
+        LH3("Pill"),
+        CenterWrap([
+          LPill("年份", "2026"),
+          LPill("类型", "电影", color: Theme.of(context).colorScheme.secondary),
+        ]),
       ],
     );
+  }
+}
+
+class _CarouselWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return LCarousel([
+      CarouselItem(
+        // LH1("111111", color: Colors.red),
+        SizedBox(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [LH1("111111", color: Colors.red)],
+          ),
+        ),
+        image: "https://ts1.tc.mm.bing.net/th/id/OIP-C.LZVq5G8tHTosSDy9QEdSuwHaEc?r=0&rs=1&pid=ImgDetMain&o=7&rm=3",
+      ),
+      CarouselItem(
+        LH1("22222"),
+        image: "https://ts1.tc.mm.bing.net/th/id/R-C.bf0b3a015a0d0aa32bb5ce8ffe7600d0?rik=MMRxwZ4yCmjJeQ&riu=http%3a%2f%2fn.sinaimg.cn%2fsinacn20122%2f619%2fw959h460%2f20200123%2f4666-innckcf2900169.jpg&ehk=k84ToP0uhVfIv6f6j9s3B%2bPNAFUumecUIQ0VfitgLhI%3d&risl=&pid=ImgRaw&r=0",
+      ),
+
+      CarouselItem(
+        LH1("333333"),
+        image: "https://ts4.tc.mm.bing.net/th/id/OIP-C.OI8Ih_uewHisSvOD6UO3rQHaEJ?r=0&rs=1&pid=ImgDetMain&o=7&rm=3",
+      ),
+    ]);
   }
 }
 
@@ -214,6 +214,7 @@ class _HomePage extends State<HomePage> {
     _SelectorWidget(),
     _TextsWidget(),
     _ChipWidget(),
+    _CarouselWidget(),
   ];
 
   // const _HomePage();
@@ -245,6 +246,10 @@ class _HomePage extends State<HomePage> {
               NavigationRailDestination(
                 icon: Icon(Icons.tag),
                 label: Text('Chip'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.card_membership_rounded),
+                label: Text('Carousel'),
               ),
             ],
           ),
