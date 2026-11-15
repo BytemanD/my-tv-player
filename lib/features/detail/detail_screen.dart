@@ -28,7 +28,18 @@ class _DetailScreenState extends State<DetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<AppController>();
+    final controller = context.read<AppController>();
+    final progressMap = context
+        .select<AppController, Map<int, PlaybackProgress>>(
+          (controller) => controller.progressMap,
+        );
+    context.select<AppController, List<LibraryEntry>>(
+      (controller) => controller.entries,
+    );
+    final hasTmdbKey = context.select<AppController, bool>(
+      (controller) => controller.hasTmdbKey,
+    );
+
     final entry = controller.entryByKey(widget.entryKey);
 
     if (entry == null) {
@@ -69,9 +80,7 @@ class _DetailScreenState extends State<DetailScreen> {
     final lead = entry.lead;
     final isSeries = entry.isSeries;
     final movie = entry.movie;
-    final showProgress = movie?.id == null
-        ? null
-        : controller.progressMap[movie!.id!];
+    final showProgress = movie?.id == null ? null : progressMap[movie!.id!];
     final watched = showProgress?.completed ?? false;
 
     final seasons = isSeries ? entry.series!.seasons : const <int>[];
@@ -83,6 +92,10 @@ class _DetailScreenState extends State<DetailScreen> {
               )
               .toList()
         : const <MediaItem>[];
+
+    print("===================");
+    print(entry.overview);
+    print("===================");
 
     return Scaffold(
       body: Stack(
@@ -108,7 +121,7 @@ class _DetailScreenState extends State<DetailScreen> {
                         }
                       },
                       watched: watched,
-                      onScrape: controller.hasTmdbKey
+                      onScrape: hasTmdbKey
                           ? () => controller.scrapeMedia(lead)
                           : null,
                     ),
@@ -146,12 +159,10 @@ class _DetailScreenState extends State<DetailScreen> {
                                 autofocus: false,
                                 progress: episodes[i].id == null
                                     ? null
-                                    : controller.progressMap[episodes[i].id!],
+                                    : progressMap[episodes[i].id!],
                                 watched:
                                     episodes[i].id != null &&
-                                    (controller
-                                            .progressMap[episodes[i].id!]
-                                            ?.completed ??
+                                    (progressMap[episodes[i].id!]?.completed ??
                                         false),
                                 onTap: () => _playEpisode(
                                   context,

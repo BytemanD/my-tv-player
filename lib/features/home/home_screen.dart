@@ -1,17 +1,16 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:luma_tv/widgets/carousel.dart';
-import 'package:luma_tv/widgets/dialog.dart';
 import 'package:provider/provider.dart';
 
-import '../../controllers/app_controller.dart';
-import '../../data/models.dart';
-import '../../widgets/button.dart';
-import '../../widgets/empty_state.dart';
-import '../../widgets/shelf.dart';
-import '../detail/detail_screen.dart';
-import '../player/player_launcher.dart';
+import 'package:luma_tv/controllers/app_controller.dart';
+import 'package:luma_tv/data/library_source.dart';
+import 'package:luma_tv/data/models.dart';
+import 'package:luma_tv/features/detail/detail_screen.dart';
+import 'package:luma_tv/features/player/player_launcher.dart';
+import 'package:luma_tv/widgets/button.dart';
+import 'package:luma_tv/widgets/carousel.dart';
+import 'package:luma_tv/widgets/dialog.dart';
+import 'package:luma_tv/widgets/empty_state.dart';
+import 'package:luma_tv/widgets/shelf.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -19,34 +18,64 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<AppController>();
+    final sources = context.select<AppController, List<LibrarySource>>(
+      (controller) => controller.sources,
+    );
+    final entries = context.select<AppController, List<LibraryEntry>>(
+      (controller) => controller.entries,
+    );
+    final hasStorageAccess = context.select<AppController, bool>(
+      (controller) => controller.hasStorageAccess,
+    );
+    final heroEntries = context.select<AppController, List<LibraryEntry>>(
+      (controller) => controller.heroEntries,
+    );
 
-    if (controller.sources.isEmpty || controller.entries.isEmpty) {
+    final recentEntries = context.select<AppController, List<LibraryEntry>>(
+      (controller) => controller.recentEntries,
+    );
+    final movieEntries = context.select<AppController, List<LibraryEntry>>(
+      (controller) => controller.movieEntries,
+    );
+    final seriesEntries = context.select<AppController, List<LibraryEntry>>(
+      (controller) => controller.seriesEntries,
+    );
+    final scanning = context.select<AppController, bool>(
+      (controller) => controller.scanning,
+    );
+    final scraping = context.select<AppController, bool>(
+      (controller) => controller.scraping,
+    );
+    final continueWatching = context.select<AppController, List<ContinueItem>>(
+      (controller) => controller.continueWatching,
+    );
+    if (sources.isEmpty || entries.isEmpty) {
       return Padding(
         padding: const EdgeInsets.fromLTRB(34, 26, 56, 30),
         child: EmptyLibrary(
-          hasSources: controller.sources.isNotEmpty,
-          hasAccess: controller.hasStorageAccess,
+          hasSources: sources.isNotEmpty,
+          hasAccess: hasStorageAccess,
           onGrantAccess: controller.requestStorageAccess,
           onAddFolder: () => showAddSourceDialog(context, controller),
-          onScan: controller.sources.isEmpty
+          onScan: sources.isEmpty
               ? () => showAddSourceDialog(context, controller)
               : controller.scanAll,
-          title: controller.sources.isEmpty ? null : '还没有发现视频',
+          title: seriesEntries.isEmpty ? null : '还没有发现视频',
         ),
       );
     }
 
-    final heroEntries = controller.heroEntries;
-    final recent = controller.recentEntries.take(14).toList();
-    final movies = controller.movieEntries.take(14).toList();
-    final series = controller.seriesEntries.take(14).toList();
+    // final heroEntries = controller.heroEntries;
+    final recent = recentEntries.take(14).toList();
+    final movies = movieEntries.take(14).toList();
+    final series = seriesEntries.take(14).toList();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(34, 26, 56, 44),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!controller.hasStorageAccess) ...[
+          if (!hasStorageAccess) ...[
             _AccessBanner(controller: controller),
             const SizedBox(height: 18),
           ],
@@ -59,16 +88,16 @@ class HomeScreen extends StatelessWidget {
               },
               onDetails: (entry) => _openDetails(context, entry),
             ),
-          if (controller.scanning || controller.scraping) ...[
+          if (scanning || scraping) ...[
             const SizedBox(height: 20),
             _ActivityCard(controller: controller),
           ],
           const SizedBox(height: 30),
-          if (controller.continueWatching.isNotEmpty) ...[
+          if (continueWatching.isNotEmpty) ...[
             MediaShelf(
               title: '继续观看',
               entries: const [],
-              continueItems: controller.continueWatching,
+              continueItems: continueWatching,
               onOpen: (_) {},
               onOpenContinue: (item) =>
                   openPlayer(context, controller, item.media),

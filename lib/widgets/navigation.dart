@@ -3,12 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/menu_controller.dart';
 import 'package:provider/provider.dart';
 
-class NavRail extends StatelessWidget {
+class NavRail extends StatefulWidget {
   const NavRail({super.key});
 
   @override
+  State<StatefulWidget> createState() => _NavRail();
+}
+
+class _NavRail extends State<NavRail> {
+  int focusIndex = 0;
+
+  @override
   Widget build(BuildContext context) {
-    final menuController = context.watch<AppMenuController>();
+    final menuController = context.read<AppMenuController>();
+    int menuIndex = context.select<AppMenuController, int>(
+      (controller) => controller.index,
+    );
     final widgets = menuController.menus.asMap().entries.map((entry) {
       final item = Focus(
         focusNode: FocusNode(),
@@ -17,12 +27,15 @@ class NavRail extends StatelessWidget {
           icon: entry.value.icon,
           selectedIcon: entry.value.selectedIcon,
           route: '/',
-          selected: entry.key == menuController.index,
+          selected: entry.key == menuIndex,
           onSelect: () => {menuController.onSelect(entry.key)},
         ),
       );
-      if (entry.key == menuController.index) {
-        item.focusNode?.requestFocus();
+      if (entry.key == menuIndex) {
+        if (focusIndex != menuIndex) {
+          item.focusNode?.requestFocus();
+          focusIndex = menuIndex;
+        }
       }
       return Focus(focusNode: FocusNode(), child: item);
     }).toList();

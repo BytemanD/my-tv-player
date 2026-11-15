@@ -485,7 +485,7 @@ class _RatingPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.star_rounded, size: 12),
+          const Icon(Icons.star_rounded, size: 12, color: Colors.amber),
           const SizedBox(width: 3),
           Text(
             formatRating(rating),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:luma_tv/data/library_source.dart';
 // import 'package:luma_tv/core/luma_colors.dart';
 import 'package:luma_tv/widgets/button.dart';
 import 'package:luma_tv/widgets/dialog.dart';
@@ -50,8 +51,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<AppController>();
-    final all = _entries(controller);
+    final controller = context.read<AppController>();
+    final sources = context.select<AppController, List<LibrarySource>>(
+      (controller) => controller.sources,
+    );
+    final hasStorageAccess = context.select<AppController, bool>(
+      (controller) => controller.hasStorageAccess,
+    );
+    final all = _entries(context);
     final entries = _sorted(all);
 
     final title = switch (widget.kind) {
@@ -119,13 +126,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 56),
               child: EmptyLibrary(
-                hasSources: controller.sources.isNotEmpty,
-                hasAccess: controller.hasStorageAccess,
+                hasSources: sources.isNotEmpty,
+                hasAccess: hasStorageAccess,
                 onGrantAccess: controller.requestStorageAccess,
                 onAddFolder: () => showAddSourceDialog(context, controller),
                 onScan: controller.scanAll,
                 title: '这里还没有内容',
-                description: controller.sources.isEmpty
+                description: sources.isEmpty
                     ? '添加一个媒体目录，Luma 会自动扫描视频并刮削海报与元数据。'
                     : '没有符合当前筛选条件的条目。',
               ),
@@ -185,12 +192,21 @@ class _LibraryScreenState extends State<LibraryScreen> {
     return controller.progressMap[id]?.fraction ?? 0;
   }
 
-  List<LibraryEntry> _entries(AppController controller) {
+  List<LibraryEntry> _entries(BuildContext context) {
+    final movieEntries = context.select<AppController, List<LibraryEntry>>(
+      (controller) => controller.movieEntries,
+    );
+    final seriesEntries = context.select<AppController, List<LibraryEntry>>(
+      (controller) => controller.seriesEntries,
+    );
+    final entries = context.select<AppController, List<LibraryEntry>>(
+      (controller) => controller.entries,
+    );
     final kind = _activeFilter;
     final source = switch (kind) {
-      LibraryKind.movies => controller.movieEntries,
-      LibraryKind.series => controller.seriesEntries,
-      LibraryKind.all => controller.entries,
+      LibraryKind.movies => movieEntries,
+      LibraryKind.series => seriesEntries,
+      LibraryKind.all => entries,
     };
     return [...source];
   }

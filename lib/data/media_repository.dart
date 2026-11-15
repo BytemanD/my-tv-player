@@ -481,7 +481,7 @@ class MediaRepository {
     await db.transaction((txn) async {
       await txn.delete('progress');
       await txn.delete('media');
-      await txn.delete('sources');
+      // await txn.delete('sources');
     });
   }
 }

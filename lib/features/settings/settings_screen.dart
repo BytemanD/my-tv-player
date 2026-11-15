@@ -14,7 +14,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     logger.i("build setttings");
-    final controller = context.watch<AppController>();
+    final controller = context.read<AppController>();
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(34, 30, 56, 54),
       child: ConstrainedBox(
@@ -38,20 +38,20 @@ class SettingsScreen extends StatelessWidget {
             TDivider(),
 
             TTitle("扫描"),
-            TvScan(controller),
+            TvScan(),
             TDivider(),
 
             TTitle("播放"),
-            TvPlayer(controller),
+            TvPlayer(),
             TDivider(),
 
             TTitle("媒体来源"),
-            TvMediaSource(controller),
+            TvMediaSource(),
             TDivider(),
 
             TTitle("数据"),
             TDivider(),
-            TvData(controller),
+            TvData(),
 
             TDivider(),
             Center(

@@ -8,6 +8,8 @@ import 'package:luma_tv/widgets/button.dart';
 import 'package:luma_tv/widgets/card.dart';
 import 'package:luma_tv/widgets/dialog.dart';
 import 'package:luma_tv/widgets/divider.dart';
+import 'package:luma_tv/widgets/luma_widgets/chip.dart';
+import 'package:luma_tv/widgets/luma_widgets/switch.dart';
 import 'package:luma_tv/widgets/selector.dart';
 import 'package:luma_tv/widgets/sheet.dart';
 import 'package:luma_tv/widgets/space.dart';
@@ -20,7 +22,7 @@ class TvUI extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeController = context.watch<ThemeController>();
+    final themeController = context.read<ThemeController>();
     return TSheet(
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,10 +91,8 @@ class TvMeta extends StatelessWidget {
                 alighment: WrapCrossAlignment.start,
                 isExpanded: true,
               ),
-
-              TChip(
+              LChip.filled(
                 controller.hasTmdbKey ? '已配置' : '未配置',
-                boderWidth: 0,
                 color: controller.hasTmdbKey
                     ? Theme.of(context).colorScheme.primary
                     : Theme.of(context).colorScheme.error,
@@ -108,29 +108,11 @@ class TvMeta extends StatelessWidget {
                 alighment: WrapCrossAlignment.start,
                 isExpanded: true,
               ),
-              TChip(
+              LChip.filled(
                 controller.hasDoubanKey ? '已配置' : '未配置',
-                boderWidth: 0,
                 color: controller.hasTmdbKey
                     ? Theme.of(context).colorScheme.primary
                     : Theme.of(context).colorScheme.error,
-              ),
-            ],
-          ),
-          TLine(),
-          Row(
-            children: [
-              TSpace(
-                [TH4("元数据语言"), TSubTitle('影响 TMDB 返回的标题、简介与剧集信息')],
-                vertical: true,
-                alighment: WrapCrossAlignment.start,
-                isExpanded: true,
-              ),
-              TSelect(
-                [for (final x in TmdbLanguage.values) x.label],
-                onChanged: (i) => {
-                  controller.setLanguage(TmdbLanguage.values[i]),
-                },
               ),
             ],
           ),
@@ -151,11 +133,28 @@ class TvMeta extends StatelessWidget {
                   alighment: WrapCrossAlignment.start,
                   isExpanded: true,
                 ),
-
               TButton(
                 label: "重新刮削全部",
+                autofocus: true,
                 icon: Icons.radar_rounded,
                 onClick: () => {controller.scrapeAll()},
+              ),
+            ],
+          ),
+          TLine(),
+          Row(
+            children: [
+              TSpace(
+                [TH4("元数据语言"), TSubTitle('影响 TMDB 返回的标题、简介与剧集信息')],
+                vertical: true,
+                alighment: WrapCrossAlignment.start,
+                isExpanded: true,
+              ),
+              TSelect(
+                [for (final x in TmdbLanguage.values) x.label],
+                onChanged: (i) => {
+                  controller.setLanguage(TmdbLanguage.values[i]),
+                },
               ),
             ],
           ),
@@ -166,9 +165,7 @@ class TvMeta extends StatelessWidget {
 }
 
 class TvScan extends StatelessWidget {
-  final AppController controller;
-
-  const TvScan(this.controller, {super.key});
+  const TvScan({super.key});
   static String _formatMoment(DateTime moment) {
     final now = DateTime.now();
     final diff = now.difference(moment);
@@ -181,21 +178,27 @@ class TvScan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ScaffoldMessenger.of(context);
+    final controller = context.read<AppController>();
+    final autoScrape = context.select<AppController, bool>(
+      (controller) => controller.settings.autoScrape,
+    );
+    final autoScanOnStart = context.select<AppController, bool>(
+      (controller) => controller.settings.autoScanOnStart,
+    );
     return TSheet(
       Column(
         children: [
-          TSwitch(
+          LSwitch(
             controller.setAutoScanOnStart,
-            value: controller.settings.autoScanOnStart,
+            value: autoScanOnStart,
             title: "启动时自动扫描",
             subTitle: "打开应用后检查所有媒体目录是否有新文件",
           ),
           TLine(),
 
-          TSwitch(
+          LSwitch(
             controller.setAutoScrape,
-            value: controller.settings.autoScrape,
+            value: autoScrape,
             title: "扫描后自动刮削",
             subTitle: "发现新视频后自动向 TMDB 获取海报与元数据",
           ),
@@ -250,32 +253,41 @@ class TvScan extends StatelessWidget {
 }
 
 class TvPlayer extends StatelessWidget {
-  final AppController controller;
-
-  const TvPlayer(this.controller, {super.key});
+  const TvPlayer({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = context.read<AppController>();
+    final autoLoadSubtitles = context.select<AppController, bool>(
+      (controller) => controller.settings.autoLoadSubtitles,
+    );
+    final autoPlayNext = context.select<AppController, bool>(
+      (controller) => controller.settings.autoPlayNext,
+    );
+    final rememberPlaybackSpeed = context.select<AppController, bool>(
+      (controller) => controller.settings.rememberPlaybackSpeed,
+    );
+
     return TSheet(
       Column(
         children: [
           TSwitch(
             controller.setAutoLoadSubtitles,
-            value: controller.settings.autoLoadSubtitles,
+            value: autoLoadSubtitles,
             title: "自动加载同名字幕",
             subTitle: "播放时自动寻找与视频同名的 .srt / .ass 字幕",
           ),
           TLine(),
           TSwitch(
             controller.setAutoPlayNext,
-            value: controller.settings.autoPlayNext,
+            value: autoPlayNext,
             title: "自动播放下一集",
             subTitle: "当前剧集结束后继续播放下一集",
           ),
           TLine(),
           TSwitch(
             controller.setRememberPlaybackSpeed,
-            value: controller.settings.rememberPlaybackSpeed,
+            value: rememberPlaybackSpeed,
             title: "记住播放速度",
             subTitle: "打开后，下一个视频将沿用上一次切换的播放速度",
           ),
@@ -286,9 +298,7 @@ class TvPlayer extends StatelessWidget {
 }
 
 class TvMediaSource extends StatelessWidget {
-  final AppController controller;
-
-  const TvMediaSource(this.controller, {super.key});
+  const TvMediaSource({super.key});
 
   Future<void> showAddSourceDialog(
     BuildContext context,
@@ -324,7 +334,14 @@ class TvMediaSource extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final granted = controller.hasStorageAccess;
+    final controller = context.read<AppController>();
+    final granted = context.select<AppController, bool>(
+      (controller) => controller.hasStorageAccess,
+    );
+    final sources = context.select<AppController, List<LibrarySource>>(
+      (controller) => controller.sources,
+    );
+
     return TSheet(
       Column(
         children: [
@@ -367,24 +384,21 @@ class TvMediaSource extends StatelessWidget {
             ],
           ),
           TLine(),
-          if (controller.sources.isEmpty) ...[
+          if (sources.isEmpty) ...[
             TH4(
               "还没有添加媒体目录",
               color: Theme.of(context).extension<SemanticColors>()?.danger,
             ),
             TLine(),
           ] else ...[
-            for (var i = 0; i < controller.sources.length; i++) ...[
+            for (var i = 0; i < sources.length; i++) ...[
               Row(
                 children: [
                   Icon(Icons.folder_outlined),
                   TDivider(),
                   Expanded(
                     child: TSpace(
-                      [
-                        TH4(controller.sources[i].name),
-                        TSubTitle(controller.sources[i].path),
-                      ],
+                      [TH4(sources[i].name), TSubTitle(sources[i].path)],
                       vertical: true,
                       alighment: WrapCrossAlignment.start,
                     ),
@@ -394,11 +408,8 @@ class TvMediaSource extends StatelessWidget {
                     color: Theme.of(context)
                         .extension<SemanticColors>()
                         ?.danger,
-                    onClick: () => _removeSource(
-                      context,
-                      controller,
-                      controller.sources[i],
-                    ),
+                    onClick: () =>
+                        _removeSource(context, controller, sources[i]),
                   ),
                 ],
               ),
@@ -423,22 +434,7 @@ class TvMediaSource extends StatelessWidget {
 }
 
 class TvData extends StatelessWidget {
-  final AppController controller;
-
-  const TvData(this.controller, {super.key});
-
-  Future<void> showAddSourceDialog(
-    BuildContext context,
-    AppController controller,
-  ) async {
-    final path = await showDialog<String>(
-      context: context,
-      barrierDismissible: true,
-      builder: (_) => FolderPickerDialog(controller: controller),
-    );
-    if (path == null) return;
-    await controller.addSourceFromPath(path);
-  }
+  const TvData({super.key});
 
   Future<void> _confirmClear(
     BuildContext context,
@@ -455,11 +451,14 @@ class TvData extends StatelessWidget {
     );
     if (confirmed == true) {
       await controller.clearLibrary();
+      messageController.success("媒体库已清空");
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final controller = context.read<AppController>();
+
     return TSheet(
       Column(
         children: [
@@ -493,9 +492,7 @@ class TvData extends StatelessWidget {
               TButton(
                 label: '进入',
                 // icon: Icons.mediation,
-                onClick: () {
-                  controller.notCompleteOnboarding();
-                },
+                onClick: controller.notCompleteOnboarding,
               ),
             ],
           ),

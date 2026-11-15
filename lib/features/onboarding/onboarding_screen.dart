@@ -39,7 +39,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<AppController>();
+    final controller = context.read<AppController>();
     return Scaffold(
       body: Stack(
         children: [

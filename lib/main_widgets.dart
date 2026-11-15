@@ -185,7 +185,6 @@ class _CarouselWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return LCarousel([
       CarouselItem(
-        // LH1("111111", color: Colors.red),
         SizedBox(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

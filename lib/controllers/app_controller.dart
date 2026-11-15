@@ -279,6 +279,7 @@ class AppController extends ChangeNotifier {
       }
     }
 
+    logger.i('start scan ...');
     scanning = true;
     notifyListeners();
     var totalAdded = 0;
@@ -400,6 +401,7 @@ class AppController extends ChangeNotifier {
       return;
     }
 
+    logger.i("start crape");
     scraping = true;
     scrapeProgress = ScrapeProgress(
       running: true,
@@ -516,6 +518,7 @@ class AppController extends ChangeNotifier {
   // --------------------------------------------------------------- settings
 
   Future<void> setLanguage(TmdbLanguage language) async {
+    logger.i('set language -> ${language.name}');
     await settings.setLanguage(language);
     notifyListeners();
   }

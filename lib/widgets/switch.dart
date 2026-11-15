@@ -20,7 +20,6 @@ class TSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DpadFocusable(
-      effects: const [DpadGlowEffect(), DpadScaleEffect(scale: 0.98)],
       onSelect: () => onChanged(!value), // 直接取反通知父级
       child: Row(
         children: [

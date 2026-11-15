@@ -104,7 +104,9 @@ class _LumaMaterialApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<AppController>();
+    final onboardingComplete = context.select<AppController, bool>(
+      (controller) => controller.settings.onboardingComplete,
+    );
     ThemeData theme = context.select(
       (ThemeController c) => c.appTheme.themeData,
     );
@@ -116,7 +118,11 @@ class _LumaMaterialApp extends StatelessWidget {
       theme: theme,
       builder: Dpad.wrap(
         theme: const DpadThemeData(
-          effects: [DpadScaleEffect(scale: 1.08), DpadGlowEffect()],
+          effects: [
+            DpadGlowEffect(),
+            DpadScaleEffect(scale: 1.02),
+            // DpadBorderEffect(color: Colors.white, width: 2),
+          ],
           scrollPadding: 48,
         ),
         onBack: () {
@@ -125,7 +131,7 @@ class _LumaMaterialApp extends StatelessWidget {
         onMenu: () {},
         debugOverlay: false,
       ),
-      home: controller.settings.onboardingComplete
+      home: onboardingComplete
           ? const MainShell(child: HomeScreen())
           : const OnboardingScreen(),
     );

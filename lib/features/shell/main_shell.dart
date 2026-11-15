@@ -2,6 +2,7 @@ import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/menu_controller.dart';
 import 'package:luma_tv/controllers/message_controller.dart';
+import 'package:luma_tv/core/common/log.dart';
 import 'package:luma_tv/widgets/navigation.dart';
 import 'package:provider/provider.dart';
 
@@ -27,7 +28,7 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
     LibraryScreen(kind: LibraryKind.movies),
     LibraryScreen(kind: LibraryKind.series),
     LibraryScreen(kind: LibraryKind.all),
-    SettingsScreen(),
+    DpadRegion(verticalEdge: DpadEdgeBehavior.stop, child: SettingsScreen()),
   ];
 
   @override
@@ -52,8 +53,13 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final menuController = context.watch<AppMenuController>();
+    final menuController = context.read<AppMenuController>();
+    int menuIndex = context.select<AppMenuController, int>(
+      (controller) => controller.index,
+    );
     messageController.init(context);
+
+    logger.i("build mainShell ...");
 
     return Scaffold(
       body: Stack(
@@ -61,14 +67,11 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
           Row(
             children: [
               // 左侧导航栏（NavRail）
-              DpadRegion(child: NavRail()),
+              DpadRegion(verticalEdge: DpadEdgeBehavior.stop, child: NavRail()),
               Expanded(
                 child: HomeNavigation(
                   goToTab: menuController.onSelect,
-                  child: IndexedStack(
-                    index: menuController.index,
-                    children: _pages,
-                  ),
+                  child: IndexedStack(index: menuIndex, children: _pages),
                 ),
               ),
               // 右侧内容区域

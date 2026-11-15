@@ -17,6 +17,8 @@ class LCarousel extends StatefulWidget {
   final bool autoPlay;
   final int playInterval;
   final double borderRadius;
+  final bool showController;
+
   const LCarousel(
     this.items, {
     super.key,
@@ -24,6 +26,7 @@ class LCarousel extends StatefulWidget {
     this.playInterval = 5,
     this.height = 414,
     this.borderRadius = 26,
+    this.showController = false,
   });
 
   @override
@@ -49,7 +52,7 @@ class _LCarousel extends State<LCarousel> {
     if (_paused || widget.items.length <= 1) return;
     _timer = Timer.periodic(
       Duration(seconds: widget.playInterval),
-      (_) => _next(),
+      (_) => _nextItem(),
     );
   }
 
@@ -59,7 +62,11 @@ class _LCarousel extends State<LCarousel> {
     super.dispose();
   }
 
-  void _next() {
+  void _nextItem() {
+    setState(() => _current = (_current + 1) % widget.items.length);
+  }
+
+  void _preItem() {
     setState(
       () =>
           _current = (_current - 1 + widget.items.length) % widget.items.length,
@@ -119,9 +126,8 @@ class _LCarousel extends State<LCarousel> {
                   child: Column(
                     children: [
                       const Spacer(),
-                      _getControllPanel(context),
+                      if (widget.showController) _getControllPanel(context),
                       const Spacer(),
-                      // LChip("xxxxxxxxx"),
                       _getCarouselDot(context),
                     ],
                   ),
@@ -160,14 +166,16 @@ class _LCarousel extends State<LCarousel> {
     final color = Theme.of(context).colorScheme.primary.withValues(alpha: 0.5);
     return Row(
       children: [
-        LButton(icon: Icons.chevron_left_rounded, color: color, onClick: _next),
+        LButton(
+          icon: Icons.chevron_left_rounded,
+          color: color,
+          onClick: _nextItem,
+        ),
         Spacer(),
         LButton(
           icon: Icons.chevron_right_rounded,
           color: color,
-          onClick: () {
-            setState(() => _current = (_current + 1) % widget.items.length);
-          },
+          onClick: _preItem,
         ),
       ],
     );
