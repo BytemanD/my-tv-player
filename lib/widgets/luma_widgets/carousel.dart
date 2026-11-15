@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:luma_tv/widgets/luma_widgets/button.dart';
@@ -6,7 +7,8 @@ import 'package:luma_tv/widgets/luma_widgets/button.dart';
 class CarouselItem {
   Widget content;
   String? image;
-  CarouselItem(this.content, {this.image});
+  Widget? imageWidget;
+  CarouselItem(this.content, {this.image, this.imageWidget});
 }
 
 class LCarousel extends StatefulWidget {
@@ -99,7 +101,7 @@ class _LCarousel extends State<LCarousel> {
               ),
               // 内容
               Positioned(
-                left: 70,
+                left: 60,
                 bottom: 0,
                 child: Container(
                   padding: const EdgeInsets.all(12),
@@ -133,9 +135,25 @@ class _LCarousel extends State<LCarousel> {
   }
 
   Widget _getBackgroudIamage(BuildContext context) {
-    return widget.items[_current].image != null
-        ? Image.network(widget.items[_current].image!, fit: BoxFit.cover)
-        : SizedBox();
+    if (widget.items[_current].imageWidget != null) {
+      return widget.items[_current].imageWidget!;
+    }
+    if (widget.items[_current].image == null) {
+      return SizedBox();
+    }
+    String imageUrl = widget.items[_current].image!;
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return Image.network(widget.items[_current].image!, fit: BoxFit.cover);
+    }
+    final file = File(imageUrl);
+    return Image.file(
+      file,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+      // errorBuilder: (_, _, _) =>
+      //     PosterImage(seed: seed, remotePath: remotePath),
+    );
   }
 
   Widget _getControllPanel(BuildContext context) {
