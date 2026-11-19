@@ -25,9 +25,9 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
   static const _pages = <Widget>[
     HomeScreen(),
-    LibraryScreen(kind: LibraryKind.movies),
-    LibraryScreen(kind: LibraryKind.series),
-    LibraryScreen(kind: LibraryKind.all),
+    // LibraryScreen(kind: LibraryKind.movies),
+    // LibraryScreen(kind: LibraryKind.series),
+    LibraryScreen(),
     DpadRegion(verticalEdge: DpadEdgeBehavior.stop, child: SettingsScreen()),
   ];
 
@@ -53,7 +53,7 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final menuController = context.read<AppMenuController>();
+    // final menuController = context.read<AppMenuController>();
     int menuIndex = context.select<AppMenuController, int>(
       (controller) => controller.index,
     );
@@ -70,7 +70,6 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
               DpadRegion(verticalEdge: DpadEdgeBehavior.stop, child: NavRail()),
               Expanded(
                 child: HomeNavigation(
-                  goToTab: menuController.onSelect,
                   child: IndexedStack(index: menuIndex, children: _pages),
                 ),
               ),

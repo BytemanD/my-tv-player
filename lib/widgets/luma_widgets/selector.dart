@@ -1,6 +1,5 @@
 import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
-import 'package:luma_tv/core/common/log.dart';
 import 'package:luma_tv/widgets/luma_widgets/text.dart';
 
 class LSelector extends StatefulWidget {
@@ -10,6 +9,8 @@ class LSelector extends StatefulWidget {
   final double radius;
   final Color? color;
   final Color? labelColor;
+  final int? value;
+  final String variant;
 
   const LSelector(
     this.items, {
@@ -19,6 +20,8 @@ class LSelector extends StatefulWidget {
     this.color,
     this.labelColor,
     this.radius = 8,
+    this.value,
+    this.variant = "defalut",
   });
 
   @override
@@ -27,9 +30,26 @@ class LSelector extends StatefulWidget {
 
 class _LSelect extends State<LSelector> {
   int _selected = 0;
+  Map<int, bool> focusState = {};
+
+  RoundedRectangleBorder? _getSide(bool isFirst, bool isLast) {
+    return widget.variant == "text"
+        ? null
+        : RoundedRectangleBorder(
+            borderRadius: BorderRadius.horizontal(
+              left: isFirst ? Radius.circular(widget.radius) : Radius.zero,
+              right: isLast ? Radius.circular(widget.radius) : Radius.zero,
+            ),
+          );
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.value != null) {
+      _selected = widget.value!;
+    }
+    Color selectColor = widget.color ?? Theme.of(context).colorScheme.primary;
+
     return Wrap(
       // spacing: 1,
       children: [
@@ -38,31 +58,35 @@ class _LSelect extends State<LSelector> {
           const SizedBox(width: 4),
         ],
         ...List.generate(widget.items.length, (index) {
-          final isFirst = index == 0;
-          final isLast = index == widget.items.length - 1;
           return DpadFocusable(
             onSelect: () => {
               setState(() => _selected = index),
               widget.onSelect?.call(_selected),
             },
+            onFocusChange: (v) => setState(() => focusState[index] = v),
             // excludeChildFocus: false,
             child: ChoiceChip(
               showCheckmark: false,
               label: Text(widget.items[index]),
               selected: _selected == index,
-              selectedColor: widget.color,
+              selectedColor: selectColor,
               labelStyle: widget.labelColor != null
                   ? TextStyle(color: Colors.white)
                   : null,
               visualDensity: VisualDensity.comfortable,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.horizontal(
-                  left: isFirst ? Radius.circular(widget.radius) : Radius.zero,
-                  right: isLast ? Radius.circular(widget.radius) : Radius.zero,
-                ),
-              ),
+              shape: _getSide(index == 0, index == widget.items.length - 1),
+              side: widget.variant == "text" ? BorderSide.none : null,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              onSelected: (v) {},
+              backgroundColor: focusState[index] == true
+                  ? selectColor.withValues(alpha: 0.5)
+                  : null,
+              onSelected: (v) => {
+                if (v)
+                  {
+                    setState(() => _selected = index),
+                    widget.onSelect?.call(_selected),
+                  },
+              },
             ),
           );
         }),

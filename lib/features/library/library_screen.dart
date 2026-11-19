@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:luma_tv/controllers/library_controller.dart';
 import 'package:luma_tv/data/library_source.dart';
 // import 'package:luma_tv/core/luma_colors.dart';
 import 'package:luma_tv/widgets/button.dart';
 import 'package:luma_tv/widgets/dialog.dart';
 import 'package:luma_tv/widgets/divider.dart';
-import 'package:luma_tv/widgets/selector.dart';
+import 'package:luma_tv/widgets/luma_widgets/selector.dart';
 import 'package:luma_tv/widgets/space.dart';
 import 'package:luma_tv/widgets/text.dart';
 import 'package:provider/provider.dart';
@@ -15,57 +16,28 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/media_cards.dart';
 import '../detail/detail_screen.dart';
 
-enum LibraryKind {
-  all('全部'),
-  movies('电影'),
-  series("剧集");
-
-  const LibraryKind(this.label);
-  final String label;
-}
-
-enum LibrarySort {
-  recent('最近添加'),
-  title('名称'),
-  year('年份'),
-  rating('评分');
-
-  const LibrarySort(this.label);
-  final String label;
-}
-
 class LibraryScreen extends StatefulWidget {
-  const LibraryScreen({super.key, this.kind = LibraryKind.all});
-
-  final LibraryKind kind;
+  const LibraryScreen({super.key});
 
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
 }
 
 class _LibraryScreenState extends State<LibraryScreen> {
-  LibrarySort _sort = LibrarySort.recent;
-  LibraryKind? _filter;
-
-  LibraryKind get _activeFilter => _filter ?? widget.kind;
-
   @override
   Widget build(BuildContext context) {
     final controller = context.read<AppController>();
     final sources = context.select<AppController, List<LibrarySource>>(
-      (controller) => controller.sources,
+      (c) => c.sources,
     );
     final hasStorageAccess = context.select<AppController, bool>(
-      (controller) => controller.hasStorageAccess,
+      (c) => c.hasStorageAccess,
     );
-    final all = _entries(context);
-    final entries = _sorted(all);
 
-    final title = switch (widget.kind) {
-      LibraryKind.movies => '电影',
-      LibraryKind.series => '剧集',
-      LibraryKind.all => '媒体库',
-    };
+    final libraryController = context.read<LibraryController>();
+    final kind = context.select<LibraryController, LibraryKind>((c) => c.kind);
+    context.select<AppController, List<LibraryEntry>>((c) => c.entries);
+    final entries = _sorted(controller.getEntriesByKind(kind));
 
     return CustomScrollView(
       slivers: [
@@ -75,38 +47,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TSpace([
-                  TH1(title),
-                  TDivider(),
-                  TSubTitle('${entries.length} 部'),
-                ]),
-                TDivider(),
-
                 Row(
                   children: [
-                    if (widget.kind == LibraryKind.all)
-                      Row(
-                        children: [
-                          TSelect(
-                            LibraryKind.values.map((x) => x.label).toList(),
-                            onChanged: (index) => setState(() {
-                              _filter = LibraryKind.values[index];
-                            }),
-                          ),
-                          TDivider(),
-                        ],
-                      ),
-                    TDivider(width: 20),
                     TSpace([
-                      TSelect(
-                        LibrarySort.values.map((x) => x.label).toList(),
-                        label: "排序",
-                        onChanged: (value) => setState(() {
-                          _sort = LibrarySort.values[value];
-                        }),
-                      ),
+                      TH1('媒体库'),
+                      TDivider(),
+                      TSubTitle('${entries.length} 部'),
                     ]),
-
                     const Spacer(),
                     TButton(
                       icon: Icons.refresh_rounded,
@@ -114,6 +61,37 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       color: Theme.of(context).colorScheme.primary,
                       onClick: controller.scanAll,
                     ),
+                  ],
+                ),
+                TDivider(),
+                Row(
+                  children: [
+                    LSelector(
+                      LibraryKind.values.map((x) => x.label).toList(),
+                      label: "类型:",
+                      variant: "text",
+                      value: LibraryKind.values.indexOf(kind),
+                      onSelect: (index) =>
+                          libraryController.setKind(LibraryKind.values[index]),
+                    ),
+                  ],
+                ),
+                TDivider(height: 4),
+                Row(
+                  children: [
+                    TSpace([
+                      LSelector(
+                        LibrarySort.values.map((x) => x.label).toList(),
+                        label: "排序:",
+                        variant: "text",
+                        value: LibrarySort.values.indexOf(
+                          libraryController.sort,
+                        ),
+                        onSelect: (value) => libraryController.setSort(
+                          LibrarySort.values[value],
+                        ),
+                      ),
+                    ]),
                   ],
                 ),
               ],
@@ -144,7 +122,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             sliver: SliverLayoutBuilder(
               builder: (context, constraints) {
                 final width = constraints.crossAxisExtent;
-                final columns = (width / 215).floor().clamp(3, 10);
+                final columns = (width / 115).floor().clamp(3, 10);
                 const spacing = 12.0;
                 final cellWidth = (width - spacing * (columns - 1)) / columns;
                 final cardWidth = cellWidth - 12;
@@ -162,7 +140,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       alignment: Alignment.topLeft,
                       child: PosterCard(
                         entry: entry,
-                        width: cardWidth.clamp(140, 230),
+                        showMeta: false,
+                        width: cardWidth.clamp(100, 140),
                         // autofocus: index == 0,
                         watchFraction: _fractionFor(controller, entry),
                         onTap: () => Navigator.of(context).push(
@@ -192,28 +171,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
     return controller.progressMap[id]?.fraction ?? 0;
   }
 
-  List<LibraryEntry> _entries(BuildContext context) {
-    final movieEntries = context.select<AppController, List<LibraryEntry>>(
-      (controller) => controller.movieEntries,
-    );
-    final seriesEntries = context.select<AppController, List<LibraryEntry>>(
-      (controller) => controller.seriesEntries,
-    );
-    final entries = context.select<AppController, List<LibraryEntry>>(
-      (controller) => controller.entries,
-    );
-    final kind = _activeFilter;
-    final source = switch (kind) {
-      LibraryKind.movies => movieEntries,
-      LibraryKind.series => seriesEntries,
-      LibraryKind.all => entries,
-    };
-    return [...source];
-  }
-
   List<LibraryEntry> _sorted(List<LibraryEntry> input) {
+    final sort = context.select<LibraryController, LibrarySort>(
+      (controller) => controller.sort,
+    );
+
     final list = [...input];
-    switch (_sort) {
+    switch (sort) {
       case LibrarySort.recent:
         list.sort((a, b) => b.addedAt.compareTo(a.addedAt));
       case LibrarySort.title:

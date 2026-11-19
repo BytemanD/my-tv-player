@@ -9,8 +9,9 @@ import 'package:luma_tv/widgets/card.dart';
 import 'package:luma_tv/widgets/dialog.dart';
 import 'package:luma_tv/widgets/divider.dart';
 import 'package:luma_tv/widgets/luma_widgets/chip.dart';
+import 'package:luma_tv/widgets/luma_widgets/selector.dart';
 import 'package:luma_tv/widgets/luma_widgets/switch.dart';
-import 'package:luma_tv/widgets/selector.dart';
+// import 'package:luma_tv/widgets/selector.dart';
 import 'package:luma_tv/widgets/sheet.dart';
 import 'package:luma_tv/widgets/space.dart';
 import 'package:luma_tv/widgets/switch.dart';
@@ -150,9 +151,9 @@ class TvMeta extends StatelessWidget {
                 alighment: WrapCrossAlignment.start,
                 isExpanded: true,
               ),
-              TSelect(
-                [for (final x in TmdbLanguage.values) x.label],
-                onChanged: (i) => {
+              LSelector(
+                TmdbLanguage.values.map((x) => x.label).toList(),
+                onSelect: (i) => {
                   controller.setLanguage(TmdbLanguage.values[i]),
                 },
               ),

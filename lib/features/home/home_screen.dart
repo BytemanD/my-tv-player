@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:luma_tv/controllers/library_controller.dart';
+import 'package:luma_tv/controllers/menu_controller.dart';
 import 'package:provider/provider.dart';
 
 import 'package:luma_tv/controllers/app_controller.dart';
@@ -109,7 +111,7 @@ class HomeScreen extends StatelessWidget {
             entries: recent,
             autofocusFirst: heroEntries.isEmpty,
             onOpen: (entry) => _openDetails(context, entry),
-            onSeeAll: () => _openLibrary(context, 3),
+            onSeeAll: () => _openLibrary(context, LibraryKind.all),
           ),
           const SizedBox(height: 12),
           if (movies.isNotEmpty) ...[
@@ -117,7 +119,7 @@ class HomeScreen extends StatelessWidget {
               title: '电影',
               entries: movies,
               onOpen: (entry) => _openDetails(context, entry),
-              onSeeAll: () => _openLibrary(context, 1),
+              onSeeAll: () => _openLibrary(context, LibraryKind.movies),
             ),
             const SizedBox(height: 24),
           ],
@@ -126,7 +128,7 @@ class HomeScreen extends StatelessWidget {
               title: '剧集',
               entries: series,
               onOpen: (entry) => _openDetails(context, entry),
-              onSeeAll: () => {_openLibrary(context, 2)},
+              onSeeAll: () => _openLibrary(context, LibraryKind.series),
             ),
           ],
         ],
@@ -155,19 +157,19 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _openLibrary(BuildContext context, int tab) {
-    HomeNavigation.of(context).goToTab(tab);
+  void _openLibrary(BuildContext context, LibraryKind kind) {
+    final menuController = context.read<AppMenuController>();
+    final libraryController = context.read<LibraryController>();
+    menuController.onSelect(1);
+    libraryController.setKind(kind);
+    if (kind == LibraryKind.all) {
+      libraryController.setSort(LibrarySort.recent);
+    }
   }
 }
 
 class HomeNavigation extends InheritedWidget {
-  const HomeNavigation({
-    super.key,
-    required this.goToTab,
-    required super.child,
-  });
-
-  final void Function(int tab) goToTab;
+  const HomeNavigation({super.key, required super.child});
 
   static HomeNavigation of(BuildContext context) {
     final result = context.dependOnInheritedWidgetOfExactType<HomeNavigation>();

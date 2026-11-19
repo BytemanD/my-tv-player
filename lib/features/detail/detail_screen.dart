@@ -3,7 +3,7 @@ import 'package:dpad/dpad.dart';
 // import 'package:luma_tv/core/theme.dart';
 import 'package:luma_tv/widgets/button.dart';
 import 'package:luma_tv/widgets/divider.dart';
-import 'package:luma_tv/widgets/selector.dart';
+import 'package:luma_tv/widgets/luma_widgets/selector.dart';
 import 'package:luma_tv/widgets/space.dart';
 import 'package:luma_tv/widgets/text.dart';
 import 'package:provider/provider.dart';
@@ -93,10 +93,6 @@ class _DetailScreenState extends State<DetailScreen> {
               .toList()
         : const <MediaItem>[];
 
-    print("===================");
-    print(entry.overview);
-    print("===================");
-
     return Scaffold(
       body: Stack(
         children: [
@@ -138,9 +134,10 @@ class _DetailScreenState extends State<DetailScreen> {
                               TSubTitle('共 ${entry.series!.episodeCount} 集'),
                             ]),
                             TDivider(),
-                            TSelect(
+                            LSelector(
                               seasons.map((x) => '第 $x 季').toList(),
-                              onChanged: (index) => {
+                              labelColor: Colors.white,
+                              onSelect: (index) => {
                                 setState(() => _season = seasons[index]),
                               },
                             ),

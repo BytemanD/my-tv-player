@@ -86,20 +86,19 @@ class PosterCard extends StatelessWidget {
                 ),
               ),
             ),
-            if (showMeta) ...[
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.only(left: 2, right: 6),
-                child: Text(
-                  entry.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w500,
-                  ),
+            Padding(
+              padding: const EdgeInsets.only(left: 2, right: 6),
+              child: Text(
+                entry.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
+            ),
+            if (showMeta) ...[
               const SizedBox(height: 3),
               Padding(
                 padding: const EdgeInsets.only(left: 2),

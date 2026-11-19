@@ -1,5 +1,6 @@
 import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
+import 'package:luma_tv/controllers/library_controller.dart';
 import 'package:luma_tv/controllers/menu_controller.dart';
 import 'package:luma_tv/controllers/message_controller.dart';
 import 'package:luma_tv/controllers/theme_controller.dart';
@@ -93,6 +94,7 @@ class _LumaAppState extends State<LumaApp> {
         ChangeNotifierProvider(create: (_) => appController),
         ChangeNotifierProvider(create: (_) => themeController),
         ChangeNotifierProvider(create: (_) => menuController),
+        ChangeNotifierProvider(create: (_) => LibraryController()),
       ],
       child: const _LumaMaterialApp(),
     );

@@ -23,18 +23,18 @@ final appMenus = [
     icon: Icons.home_outlined,
     selectedIcon: Icons.home_rounded,
   ),
-  MenuItem(
-    "movie",
-    label: '电影',
-    icon: Icons.movie_outlined,
-    selectedIcon: Icons.movie_rounded,
-  ),
-  MenuItem(
-    "tv",
-    label: '剧集',
-    icon: Icons.tv_outlined,
-    selectedIcon: Icons.tv_rounded,
-  ),
+  // MenuItem(
+  //   "movie",
+  //   label: '电影',
+  //   icon: Icons.movie_outlined,
+  //   selectedIcon: Icons.movie_rounded,
+  // ),
+  // MenuItem(
+  //   "tv",
+  //   label: '剧集',
+  //   icon: Icons.tv_outlined,
+  //   selectedIcon: Icons.tv_rounded,
+  // ),
   MenuItem(
     "labrary",
     label: '媒体库',

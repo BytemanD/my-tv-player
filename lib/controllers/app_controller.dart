@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:luma_tv/controllers/library_controller.dart';
 // import 'package:logging/logging.dart';
 import 'package:luma_tv/core/common/log.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -703,5 +704,13 @@ class AppController extends ChangeNotifier {
     _noticeTimer?.cancel();
     _activeScraper?.cancel();
     super.dispose();
+  }
+
+  List<LibraryEntry> getEntriesByKind(LibraryKind kind) {
+    return switch (kind) {
+      LibraryKind.movies => movieEntries,
+      LibraryKind.series => seriesEntries,
+      LibraryKind.all => entries,
+    };
   }
 }
