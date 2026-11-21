@@ -68,7 +68,7 @@ class LumaWordmark extends StatelessWidget {
     super.key,
     this.fontSize = 22,
     this.color,
-    this.letterSpacing = 6,
+    this.letterSpacing = 1,
   });
 
   final double fontSize;

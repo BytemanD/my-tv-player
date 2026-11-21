@@ -115,3 +115,7 @@ String cleanError(Object error) {
   if (text.length <= 180) return text;
   return '${text.substring(0, 177)}...';
 }
+
+int now() {
+  return DateTime.now().millisecondsSinceEpoch;
+}

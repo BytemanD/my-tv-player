@@ -8,8 +8,10 @@ class LButton extends StatelessWidget {
   final String? label;
   final IconData? icon;
   final Color? color;
+  final Color? frontColor;
   final double? size;
   final String variant;
+  final bool? focus;
 
   final VoidCallback? onClick;
   final bool autofocus;
@@ -20,6 +22,7 @@ class LButton extends StatelessWidget {
     super.key,
     this.size,
     this.color,
+    this.frontColor,
     this.icon,
     this.label,
     this.variant = "elevated",
@@ -27,9 +30,22 @@ class LButton extends StatelessWidget {
     this.onClick,
     this.enabled = true,
     this.autofocus = false,
+    this.focus,
   });
 
-  IconButton _iconButton(BuildContext context, {String variant = "elevated"}) {
+  void _wrapClick(BuildContext context, FocusNode node) {
+    Dpad.of(context).requestFocus(node);
+    if (!enabled) {
+      return;
+    }
+    onClick?.call();
+  }
+
+  IconButton _iconButton(
+    BuildContext context,
+    FocusNode node, {
+    String variant = "elevated",
+  }) {
     final backgroundColor = switch (variant) {
       "elevated" => color ?? Theme.of(context).colorScheme.surfaceContainer,
       "outlined" => Colors.transparent,
@@ -66,13 +82,13 @@ class LButton extends StatelessWidget {
 
         shape: const CircleBorder(),
       ),
-      onPressed: enabled ? onClick ?? () {} : null,
+      onPressed: () => _wrapClick(context, node),
     );
   }
 
-  Widget _elevatedButton(BuildContext context) {
+  Widget _elevatedButton(BuildContext context, FocusNode node) {
     if (icon != null && label == null) {
-      return _iconButton(context);
+      return _iconButton(context, node);
     }
     if (icon != null) {
       return ElevatedButton.icon(
@@ -101,9 +117,9 @@ class LButton extends StatelessWidget {
     );
   }
 
-  Widget _outlinedButton(BuildContext context) {
+  Widget _outlinedButton(BuildContext context, FocusNode node) {
     if (icon != null && label == null) {
-      return _iconButton(context, variant: "outlined");
+      return _iconButton(context, node, variant: "outlined");
     }
     if (icon != null) {
       return OutlinedButton.icon(
@@ -124,7 +140,7 @@ class LButton extends StatelessWidget {
     }
 
     return OutlinedButton(
-      onPressed: enabled ? onClick ?? () {} : null,
+      onPressed: () => _wrapClick(context, node),
       style: color != null
           ? OutlinedButton.styleFrom(
               foregroundColor: color,
@@ -135,16 +151,15 @@ class LButton extends StatelessWidget {
     );
   }
 
-  Widget _filledButton(BuildContext context) {
+  Widget _filledButton(BuildContext context, FocusNode node) {
     if (icon != null && label == null) {
-      return _iconButton(context, variant: "filled");
+      return _iconButton(context, node, variant: "filled");
     }
     if (icon != null) {
       return FilledButton.icon(
-        // onPressed: onClick,
-        onPressed: enabled ? onClick ?? () {} : null,
-        icon: Icon(icon),
-        label: Text(label ?? ""),
+        onPressed: () => _wrapClick(context, node),
+        icon: Icon(icon, color: frontColor),
+        label: Text(label ?? "", style: TextStyle(color: frontColor)),
         style: color != null
             ? FilledButton.styleFrom(
                 backgroundColor: color,
@@ -154,7 +169,7 @@ class LButton extends StatelessWidget {
       );
     }
     return FilledButton(
-      onPressed: enabled ? onClick ?? () {} : null,
+      onPressed: () => _wrapClick(context, node),
       style: color != null
           ? FilledButton.styleFrom(
               backgroundColor: color,
@@ -165,13 +180,13 @@ class LButton extends StatelessWidget {
     );
   }
 
-  Widget _textButton(BuildContext context) {
+  Widget _textButton(BuildContext context, FocusNode node) {
     if (icon != null && label == null) {
-      return _iconButton(context, variant: "text");
+      return _iconButton(context, node, variant: "text");
     }
     if (icon != null) {
       return TextButton.icon(
-        onPressed: enabled ? onClick ?? () {} : null,
+        onPressed: () => _wrapClick(context, node),
         icon: Icon(icon),
         label: Text(label ?? ""),
         style: FilledButton.styleFrom(foregroundColor: color),
@@ -184,32 +199,38 @@ class LButton extends StatelessWidget {
     );
   }
 
-  Widget _ghostButton(BuildContext context) {
+  Widget _ghostButton(BuildContext context, FocusNode node) {
     return _DashedBorderButton(
       onPressed: enabled ? onClick ?? () {} : null,
       color: color ?? Theme.of(context).colorScheme.primary,
-      child: _textButton(context),
+      child: _textButton(context, node),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return DpadFocusable(
+    FocusNode node = FocusNode();
+    final item = DpadFocusable(
       autofocus: autofocus,
-      // onFocusChange: (value) => {print("button focuse: ${value}")},
-      onSelect: enabled ? (onClick ?? () {}) : null,
+      focusNode: node,
+      onSelect: () => _wrapClick(context, node),
       child: Container(
         margin: const EdgeInsets.only(left: 4, right: 4, top: 1, bottom: 1),
         child: switch (variant) {
-          "elevated" => _elevatedButton(context),
-          "outlined" => _outlinedButton(context),
-          "filled" => _filledButton(context),
-          "text" => _textButton(context),
-          "ghost" => _ghostButton(context),
-          _ => _elevatedButton(context),
+          "elevated" => _elevatedButton(context, node),
+          "outlined" => _outlinedButton(context, node),
+          "filled" => _filledButton(context, node),
+          "text" => _textButton(context, node),
+          "ghost" => _ghostButton(context, node),
+          _ => _elevatedButton(context, node),
         },
       ),
     );
+    // if (focus == true) {
+    //   print('00000000000000 request focus: ${label}');
+    //   Dpad.of(context).requestFocus(node);
+    // }
+    return item;
   }
 
   static LButton outlined({
@@ -239,11 +260,13 @@ class LButton extends StatelessWidget {
     String? label,
     IconData? icon,
     Color? color,
+    Color? frontColor,
     double? size,
     VoidCallback? onClick,
     bool autofocus = false,
     double borderRadius = 8,
     bool enabled = true,
+    bool? focuse,
   }) {
     return LButton(
       label: label,
@@ -255,6 +278,8 @@ class LButton extends StatelessWidget {
       borderRadius: borderRadius,
       enabled: enabled,
       variant: "filled",
+      frontColor: frontColor,
+      focus: focuse,
     );
   }
 

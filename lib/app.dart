@@ -1,13 +1,17 @@
 import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
-import 'package:luma_tv/controllers/library_controller.dart';
-import 'package:luma_tv/controllers/menu_controller.dart';
-import 'package:luma_tv/controllers/message_controller.dart';
-import 'package:luma_tv/controllers/theme_controller.dart';
-import 'package:luma_tv/core/common/log.dart';
-import 'package:luma_tv/core/common/preference.dart';
 import 'package:provider/provider.dart';
 
+import 'controllers/menu_controller.dart';
+import 'controllers/message_controller.dart';
+import 'controllers/theme_controller.dart';
+import 'core/common/log.dart';
+import 'core/common/preference.dart';
+import 'features/home/home_screen.dart';
+import 'features/library/library_screen.dart';
+import 'features/settings/settings_screen.dart';
+import 'widgets/app_header.dart';
+import 'controllers/library_controller.dart';
 import 'controllers/app_controller.dart';
 import 'data/app_database.dart';
 import 'data/media_repository.dart';
@@ -15,8 +19,6 @@ import 'data/scanner/media_scanner.dart';
 import 'data/settings_service.dart';
 import 'data/storage_service.dart';
 import 'features/onboarding/onboarding_screen.dart';
-import 'features/shell/main_shell.dart';
-import 'features/home/home_screen.dart';
 import 'widgets/button.dart';
 import 'widgets/logo.dart';
 
@@ -43,6 +45,7 @@ class _LumaAppState extends State<LumaApp> {
 
   Future<void> _boot() async {
     logger.i('booting ...');
+
     final prefs = await loadSharedPreferences();
 
     final settingService = SettingsService(prefs);
@@ -133,9 +136,7 @@ class _LumaMaterialApp extends StatelessWidget {
         onMenu: () {},
         debugOverlay: false,
       ),
-      home: onboardingComplete
-          ? const MainShell(child: HomeScreen())
-          : const OnboardingScreen(),
+      home: onboardingComplete ? const _MainShell() : const OnboardingScreen(),
     );
   }
 }
@@ -218,6 +219,71 @@ class _SplashBody extends StatelessWidget {
         const SizedBox(height: 18),
         const Text('正在整理你的影院…', style: TextStyle(fontSize: 12.5)),
       ],
+    );
+  }
+}
+
+class _MainShell extends StatefulWidget {
+  const _MainShell();
+
+  @override
+  State<_MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends State<_MainShell> with WidgetsBindingObserver {
+  static const _pages = <Widget>[
+    DpadRegion(child: HomeScreen()),
+    DpadRegion(enter: DpadEnterBehavior.entry, child: LibraryScreen()),
+    DpadRegion(child: SettingsScreen()),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      final controller = context.read<AppController>();
+      controller.refreshAccessState();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    int menuIndex = context.select<AppMenuController, int>(
+      (controller) => controller.index,
+    );
+    messageController.init(context);
+
+    logger.i("build mainShell ...");
+
+    return Scaffold(
+      appBar: AppBar(title: DpadRegion(child: AppHeader())),
+      body: Stack(
+        children: [
+          Row(
+            children: [
+              // 左侧导航栏
+              // DpadRegion(verticalEdge: DpadEdgeBehavior.stop, child: NavRail()),
+              // 右侧内容区域
+              Expanded(
+                child: HomeNavigation(
+                  child: IndexedStack(index: menuIndex, children: _pages),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

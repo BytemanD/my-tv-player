@@ -1,5 +1,6 @@
 import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
+import 'package:luma_tv/widgets/luma_widgets/_utils.dart';
 import 'package:luma_tv/widgets/luma_widgets/text.dart';
 
 class LSelector extends StatefulWidget {
@@ -72,7 +73,9 @@ class _LSelect extends State<LSelector> {
               selectedColor: selectColor,
               labelStyle: widget.labelColor != null
                   ? TextStyle(color: Colors.white)
-                  : null,
+                  : (_selected == index
+                        ? TextStyle(color: estimateFrontColor(selectColor))
+                        : null),
               visualDensity: VisualDensity.comfortable,
               shape: _getSide(index == 0, index == widget.items.length - 1),
               side: widget.variant == "text" ? BorderSide.none : null,

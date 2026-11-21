@@ -22,6 +22,7 @@ class TCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DpadFocusable(
+      // autofocus: true,
       onSelect: onClick ?? () {},
       child: Card(
         elevation: elevation,

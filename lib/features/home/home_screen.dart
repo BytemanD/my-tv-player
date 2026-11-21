@@ -1,3 +1,4 @@
+import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/library_controller.dart';
 import 'package:luma_tv/controllers/menu_controller.dart';
@@ -72,7 +73,10 @@ class HomeScreen extends StatelessWidget {
     final movies = movieEntries.take(14).toList();
     final series = seriesEntries.take(14).toList();
 
-    return SingleChildScrollView(
+    ScrollController scrollController = ScrollController();
+
+    final widget = SingleChildScrollView(
+      controller: scrollController,
       padding: const EdgeInsets.fromLTRB(34, 26, 56, 44),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,6 +137,20 @@ class HomeScreen extends StatelessWidget {
           ],
         ],
       ),
+    );
+
+    return DpadRegion(
+      child: widget,
+      onEdge: (x) {
+        if (x.index == TraversalDirection.up.index ||
+            x.index == TraversalDirection.down.index) {
+          scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      },
     );
   }
 
