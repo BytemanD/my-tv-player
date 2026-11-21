@@ -146,3 +146,19 @@ class LSubTitle extends StatelessWidget {
     );
   }
 }
+
+class LStrong extends StatelessWidget {
+  final String content;
+  final Color? color;
+
+  const LStrong(this.content, {super.key, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return LText(
+      content,
+      style: TextStyle(fontWeight: FontWeight.w900),
+      color: color,
+    );
+  }
+}

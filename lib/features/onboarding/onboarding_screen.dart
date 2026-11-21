@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:luma_tv/widgets/button.dart';
 import 'package:luma_tv/widgets/dialog.dart';
-import 'package:luma_tv/widgets/text.dart';
+import 'package:luma_tv/widgets/luma_widgets/button.dart';
+import 'package:luma_tv/widgets/luma_widgets/text.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/app_controller.dart';
@@ -163,7 +163,7 @@ class _CopyColumn extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 38),
-        TH0('把影院，\n留在家里。'),
+        LH0('把影院，\n留在家里。'),
         const SizedBox(height: 18),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
@@ -200,24 +200,24 @@ class _CopyColumn extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             if (!controller.hasStorageAccess)
-              TButton(
+              LButton(
                 label: '授予文件访问权限',
                 icon: Icons.lock_open_rounded,
                 onClick: controller.requestStorageAccess,
               ),
-            TButton(
+            LButton(
               label: hasSources ? '再添加一个目录' : '添加媒体目录',
               icon: Icons.folder_open_rounded,
               onClick: () => showAddSourceDialog(context, controller),
             ),
             if (hasSources)
-              TButton(
+              LButton(
                 label: '进入 Luma',
                 icon: Icons.arrow_forward_rounded,
                 onClick: controller.completeOnboarding,
               )
             else
-              TButton(
+              LButton(
                 label: '先看看界面',
                 // color: Theme.of(context).colorScheme.secondary,
                 icon: Icons.arrow_forward_rounded,

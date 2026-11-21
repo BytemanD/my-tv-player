@@ -1,4 +1,3 @@
-import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/menu_controller.dart';
 import 'package:luma_tv/widgets/logo.dart';

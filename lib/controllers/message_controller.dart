@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/theme_controller.dart';
-import 'package:luma_tv/widgets/space.dart';
-import 'package:luma_tv/widgets/text.dart';
+import 'package:luma_tv/widgets/luma_widgets/space.dart';
+import 'package:luma_tv/widgets/luma_widgets/text.dart';
 
 enum NoticeType { success, error }
 
@@ -38,9 +38,9 @@ class MessageController {
 
     scaffoldMessengerKey.currentState?.showSnackBar(
       SnackBar(
-        content: TSpace([
+        content: LSpace([
           Icon(icon, color: Colors.white),
-          TText(content, color: Colors.white),
+          LText(content, color: Colors.white),
         ]),
         width: 500,
         backgroundColor: color,
@@ -62,5 +62,7 @@ class MessageController {
     _showSnapBar(content, duration: duration, type: NoticeType.success);
   }
 }
+
+class TText {}
 
 final messageController = MessageController();

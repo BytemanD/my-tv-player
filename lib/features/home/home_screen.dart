@@ -2,6 +2,7 @@ import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/library_controller.dart';
 import 'package:luma_tv/controllers/menu_controller.dart';
+import 'package:luma_tv/widgets/luma_widgets/button.dart';
 import 'package:provider/provider.dart';
 
 import 'package:luma_tv/controllers/app_controller.dart';
@@ -9,7 +10,6 @@ import 'package:luma_tv/data/library_source.dart';
 import 'package:luma_tv/data/models.dart';
 import 'package:luma_tv/features/detail/detail_screen.dart';
 import 'package:luma_tv/features/player/player_launcher.dart';
-import 'package:luma_tv/widgets/button.dart';
 import 'package:luma_tv/widgets/carousel.dart';
 import 'package:luma_tv/widgets/dialog.dart';
 import 'package:luma_tv/widgets/empty_state.dart';
@@ -256,7 +256,7 @@ class _ActivityCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
-            TButton(label: '停止', onClick: controller.cancelScrape),
+            LButton(label: '停止', onClick: controller.cancelScrape),
           ],
         ],
       ),
@@ -282,7 +282,7 @@ class _AccessBanner extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Expanded(child: Text('Luma 还没有文件访问权限，扫描和播放可能无法读取外接磁盘。')),
-          TButton(
+          LButton(
             label: '去授权',
             // compact: true,
             onClick: controller.requestStorageAccess,

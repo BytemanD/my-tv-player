@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:luma_tv/controllers/theme_controller.dart';
-import 'package:luma_tv/widgets/button.dart';
+import 'package:luma_tv/widgets/luma_widgets/button.dart';
 import 'package:luma_tv/widgets/player_panel.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -967,7 +967,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                 padding: const EdgeInsets.fromLTRB(46, 38, 46, 0),
                 child: Row(
                   children: [
-                    TButton(
+                    LButton(
                       icon: Icons.arrow_back_rounded,
                       size: 40,
                       color: Theme.of(context).colorScheme.primary
@@ -1007,7 +1007,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                         ],
                       ),
                     ),
-                    TButton(
+                    LButton(
                       icon: Icons.more_vert_rounded,
                       onClick: () {
                         _markInteraction();
@@ -1106,7 +1106,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                         ),
                       ),
                       const SizedBox(width: 14),
-                      TButton(
+                      LButton(
                         icon: _completed
                             ? Icons.replay_rounded
                             : _playing
@@ -1120,7 +1120,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                         },
                       ),
                       const SizedBox(width: 24),
-                      TButton(
+                      LButton(
                         label: _speed == _speed.roundToDouble()
                             ? '${_speed.toStringAsFixed(0)}x'
                             : '${_speed.toStringAsFixed(2)}x',
@@ -1132,7 +1132,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                         },
                       ),
                       const SizedBox(width: 8),
-                      TButton(
+                      LButton(
                         label: _fit == BoxFit.contain ? '适应画面' : '铺满屏幕',
                         color: Theme.of(context).colorScheme.primary.withValues(
                           alpha: _fit == BoxFit.cover ? 0.8 : 0.5,
@@ -1161,7 +1161,6 @@ class _PlayerScreenState extends State<PlayerScreen>
       ),
     );
   }
-
 
   Future<void> _setSubtitle(SubtitleTrack track) async {
     try {
@@ -1368,9 +1367,9 @@ class _ErrorOverlay extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  TButton(label: '返回', onClick: onBack),
+                  LButton(label: '返回', onClick: onBack),
                   const SizedBox(width: 12),
-                  TButton(
+                  LButton(
                     label: '重试',
                     // autofocus: true,
                     // compact: true,

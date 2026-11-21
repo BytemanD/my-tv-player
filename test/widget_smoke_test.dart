@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:luma_tv/app.dart';
 import 'package:luma_tv/controllers/app_controller.dart';
 import 'package:luma_tv/controllers/message_controller.dart';
 import 'package:luma_tv/controllers/menu_controller.dart';
@@ -11,8 +12,6 @@ import 'package:luma_tv/data/scanner/media_scanner.dart';
 import 'package:luma_tv/data/settings_service.dart';
 import 'package:luma_tv/data/storage_service.dart';
 import 'package:luma_tv/features/onboarding/onboarding_screen.dart';
-import 'package:luma_tv/features/home/home_screen.dart';
-import 'package:luma_tv/features/shell/main_shell.dart';
 import 'package:luma_tv/widgets/shelf.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -87,7 +86,7 @@ void main() {
   });
 
   testWidgets('main shell lays out every tab on a 720p TV', (tester) async {
-    await pumpAt720p(tester, const MainShell(child: HomeScreen()));
+    await pumpAt720p(tester, const MainShell());
     expect(find.text('首页'), findsWidgets);
     expect(find.text('设置'), findsWidgets);
     expect(find.text('把你的电影，留在墙上'), findsOneWidget);

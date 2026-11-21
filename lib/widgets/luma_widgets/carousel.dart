@@ -108,7 +108,7 @@ class _LCarousel extends State<LCarousel> {
               ),
               // 内容
               Positioned(
-                left: 60,
+                left: 10,
                 bottom: 0,
                 child: Container(
                   padding: const EdgeInsets.all(12),

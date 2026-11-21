@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class TSpace extends StatelessWidget {
+class LSpace extends StatelessWidget {
   final List<Widget> children;
   final bool vertical;
   final WrapCrossAlignment alighment;
   final double space;
   final bool isExpanded;
 
-  const TSpace(
+  const LSpace(
     this.children, {
     super.key,
     this.vertical = false,

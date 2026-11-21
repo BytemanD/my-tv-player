@@ -1,5 +1,6 @@
 import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
+import 'package:luma_tv/widgets/luma_widgets/button.dart';
 import 'package:provider/provider.dart';
 
 import 'controllers/menu_controller.dart';
@@ -19,7 +20,6 @@ import 'data/scanner/media_scanner.dart';
 import 'data/settings_service.dart';
 import 'data/storage_service.dart';
 import 'features/onboarding/onboarding_screen.dart';
-import 'widgets/button.dart';
 import 'widgets/logo.dart';
 
 class LumaApp extends StatefulWidget {
@@ -136,7 +136,7 @@ class _LumaMaterialApp extends StatelessWidget {
         onMenu: () {},
         debugOverlay: false,
       ),
-      home: onboardingComplete ? const _MainShell() : const OnboardingScreen(),
+      home: onboardingComplete ? const MainShell() : const OnboardingScreen(),
     );
   }
 }
@@ -192,7 +192,7 @@ class _ErrorContent extends StatelessWidget {
             style: const TextStyle(fontSize: 13.5, height: 1.6),
           ),
           const SizedBox(height: 28),
-          TButton(label: '重试', icon: Icons.refresh_rounded, onClick: onRetry),
+          LButton(label: '重试', icon: Icons.refresh_rounded, onClick: onRetry),
         ],
       ),
     );
@@ -223,14 +223,14 @@ class _SplashBody extends StatelessWidget {
   }
 }
 
-class _MainShell extends StatefulWidget {
-  const _MainShell();
+class MainShell extends StatefulWidget {
+  const MainShell({super.key});
 
   @override
-  State<_MainShell> createState() => _MainShellState();
+  State<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<_MainShell> with WidgetsBindingObserver {
+class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
   static const _pages = <Widget>[
     DpadRegion(child: HomeScreen()),
     DpadRegion(enter: DpadEnterBehavior.entry, child: LibraryScreen()),

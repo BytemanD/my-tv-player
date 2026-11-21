@@ -1,7 +1,7 @@
 import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/theme_controller.dart';
-import 'package:luma_tv/widgets/text.dart';
+import 'package:luma_tv/widgets/luma_widgets/text.dart';
 
 import '../core/common/utils.dart';
 import '../data/models.dart';
@@ -456,7 +456,7 @@ class EpisodeRow extends StatelessWidget {
               ),
             ),
             if (watched)
-              TSubTitle(
+              LSubTitle(
                 '已看完',
                 color: Theme.of(context).extension<SemanticColors>()?.success,
               ),

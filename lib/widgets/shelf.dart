@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:luma_tv/widgets/button.dart';
-import 'package:luma_tv/widgets/divider.dart';
-import 'package:luma_tv/widgets/text.dart';
+import 'package:luma_tv/widgets/luma_widgets/divider.dart';
+import 'package:luma_tv/widgets/luma_widgets/button.dart';
+import 'package:luma_tv/widgets/luma_widgets/text.dart';
 
 import '../core/common/utils.dart';
 import '../data/models.dart';
@@ -65,14 +65,14 @@ class MediaShelf extends StatelessWidget {
     final posterShelfHeight = 124 + 10 + 3 + maxMetaHeight;
 
     final children = <Widget>[
-      TH3(title),
+      LH3(title),
       // const SizedBox(width: 10),
       TDivider(),
 
       Text('$itemCount', style: const TextStyle(fontSize: 12)),
       const Spacer(),
       if (onSeeAll != null)
-        TButton(
+        LButton(
           label: '查看全部',
           color: Theme.of(context).colorScheme.secondary,
           onClick: onSeeAll,

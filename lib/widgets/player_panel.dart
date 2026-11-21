@@ -2,7 +2,7 @@ import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/app_controller.dart';
 import 'package:luma_tv/data/settings_service.dart';
-import 'package:luma_tv/widgets/button.dart';
+import 'package:luma_tv/widgets/luma_widgets/button.dart';
 import 'package:media_kit/media_kit.dart';
 
 /// 播放器右侧配置面板（endDrawer）。
@@ -74,9 +74,7 @@ class PlayerPanel extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: Colors.transparent,
-            ),
+            border: Border.all(color: Colors.transparent),
           ),
           child: Row(
             children: [
@@ -124,7 +122,7 @@ class PlayerPanel extends StatelessWidget {
             runSpacing: 8,
             children: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
                 .map(
-                  (s) => TButton(
+                  (s) => LButton(
                     label: '${s}x',
                     color: Theme.of(context).colorScheme.primary
                         .withValues(alpha: speed == s ? 0.5 : 1),
@@ -147,11 +145,10 @@ class PlayerPanel extends StatelessWidget {
             runSpacing: 8,
             children: SettingsService.seekIntervalOptions
                 .map(
-                  (seconds) => TButton(
+                  (seconds) => LButton(
                     label: '$seconds秒',
                     color: Theme.of(context).colorScheme.primary.withValues(
-                      alpha: controller.settings.seekIntervalSeconds ==
-                              seconds
+                      alpha: controller.settings.seekIntervalSeconds == seconds
                           ? 0.5
                           : 1,
                     ),
@@ -167,7 +164,7 @@ class PlayerPanel extends StatelessWidget {
           section('画面'),
           Row(
             children: [
-              TButton(
+              LButton(
                 label: '适应画面',
                 onClick: () {
                   onFitChanged(BoxFit.contain);
@@ -175,7 +172,7 @@ class PlayerPanel extends StatelessWidget {
                 },
               ),
               const SizedBox(width: 8),
-              TButton(
+              LButton(
                 label: '铺满屏幕',
                 onClick: () {
                   onFitChanged(BoxFit.cover);
@@ -188,11 +185,7 @@ class PlayerPanel extends StatelessWidget {
               player.state.tracks.audio.isNotEmpty) ...[
             const SizedBox(height: 24),
             section('播放'),
-            option(
-              '播放下一集',
-              selected: false,
-              onTap: onPlayNext,
-            ),
+            option('播放下一集', selected: false, onTap: onPlayNext),
           ],
         ],
       ),
@@ -271,7 +264,8 @@ class PlayerPanel extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () {}, // Absorb taps inside the panel so they don't reach the scrim.
+      onTap:
+          () {}, // Absorb taps inside the panel so they don't reach the scrim.
       child: FocusScope(
         child: Container(
           decoration: BoxDecoration(

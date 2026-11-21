@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-class TSheet extends StatelessWidget {
+class LSheet extends StatelessWidget {
   final double height;
   final double width;
 
   final Widget child;
 
-  const TSheet(this.child, {super.key, this.height = 16, this.width = 16});
+  const LSheet(this.child, {super.key, this.height = 16, this.width = 16});
 
   @override
   Widget build(BuildContext context) {

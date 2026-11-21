@@ -6,8 +6,8 @@ import 'package:luma_tv/controllers/app_controller.dart';
 import 'package:luma_tv/controllers/theme_controller.dart';
 import 'package:luma_tv/core/common/utils.dart';
 import 'package:luma_tv/data/storage_service.dart';
-import 'package:luma_tv/widgets/button.dart';
-import 'package:luma_tv/widgets/divider.dart';
+import 'package:luma_tv/widgets/luma_widgets/divider.dart';
+import 'package:luma_tv/widgets/luma_widgets/button.dart';
 
 class FolderPickerDialog extends StatefulWidget {
   const FolderPickerDialog({super.key, required this.controller});
@@ -219,7 +219,7 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
                         ),
                       ),
                       const TDivider(width: 12),
-                      TButton(label: '去授权', onClick: _requestAccess),
+                      LButton(label: '去授权', onClick: _requestAccess),
                     ],
                   ),
                 ),
@@ -238,7 +238,7 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
                           padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
                           child: Row(
                             children: [
-                              TButton(
+                              LButton(
                                 icon: Icons.arrow_upward_rounded,
                                 color: Theme.of(context).colorScheme.primary,
                                 size: 36,
@@ -321,14 +321,14 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
                     ),
                   ),
                   const TDivider(width: 16),
-                  TButton(
+                  LButton(
                     label: '取消',
                     // style: TvButtonStyle.ghost,
                     // compact: true,
                     onClick: () => Navigator.of(context).pop(),
                   ),
                   const TDivider(width: 10),
-                  TButton(
+                  LButton(
                     label: _atVolumeRoot ? '使用整块磁盘' : '使用此文件夹',
                     icon: Icons.check_rounded,
                     // compact: true,
@@ -371,7 +371,7 @@ class _FolderPickerDialogState extends State<FolderPickerDialog> {
                 ),
               ),
               const TDivider(height: 14),
-              TButton(
+              LButton(
                 label: '授予所有文件访问权限',
                 // compact: true,
                 onClick: () => _requestAccess(allFiles: true),
@@ -606,14 +606,14 @@ class ConfirmDialog extends StatelessWidget {
             Row(
               children: [
                 const Spacer(),
-                TButton(
+                LButton(
                   label: '取消',
                   // style: TvButtonStyle.ghost,
                   // compact: true,
                   onClick: () => Navigator.of(context).pop(false),
                 ),
                 const TDivider(width: 10),
-                TButton(
+                LButton(
                   label: confirmLabel,
                   // style: destructive
                   //     ? TvButtonStyle.outline

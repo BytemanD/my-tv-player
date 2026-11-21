@@ -4,12 +4,12 @@ import 'package:luma_tv/controllers/app_controller.dart';
 import 'package:luma_tv/core/common/utils.dart';
 import 'package:luma_tv/data/models.dart';
 import 'package:luma_tv/widgets/artwork.dart';
-import 'package:luma_tv/widgets/button.dart';
-import 'package:luma_tv/widgets/divider.dart';
+import 'package:luma_tv/widgets/luma_widgets/divider.dart';
+import 'package:luma_tv/widgets/luma_widgets/button.dart';
 import 'package:luma_tv/widgets/luma_widgets/carousel.dart';
-import 'package:luma_tv/widgets/space.dart';
-import 'package:luma_tv/widgets/spliter.dart';
-import 'package:luma_tv/widgets/text.dart';
+import 'package:luma_tv/widgets/luma_widgets/space.dart';
+import 'package:luma_tv/widgets/luma_widgets/spliter.dart';
+import 'package:luma_tv/widgets/luma_widgets/text.dart';
 
 /* 
   轮播海报墙
@@ -65,26 +65,26 @@ class _HeroCarouselState extends State<HeroCarousel> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        TH0(current.title, color: Colors.white),
+        LH0(current.title, color: Colors.white),
         TDivider(height: 12),
         Row(children: _buildMetaRow(current)),
         TDivider(height: 4),
         const SizedBox(height: 14),
-        TText(
+        LText(
           current.overview ?? "暂无简介",
           maxWidth: 780,
           maxLines: 4,
           color: Colors.white,
         ),
         TDivider(),
-        TSpace([
-          TButton(
+        LSpace([
+          LButton(
             label: isContinue ? '继续观看' : '立即播放',
             icon: Icons.play_arrow_rounded,
             color: Theme.of(context).colorScheme.primary,
             onClick: () => widget.onPlay(current),
           ),
-          TButton(
+          LButton(
             label: '详情',
             icon: Icons.info_outline_rounded,
             onClick: () => widget.onDetails(current),
@@ -101,15 +101,15 @@ class _HeroCarouselState extends State<HeroCarousel> {
     if (current.rating != null && current.rating! > 0) {
       list.add(const Icon(Icons.star_rounded, size: 17, color: Colors.amber));
       list.add(const SizedBox(width: 5));
-      list.add(TSubTitle(current.rating.toString(), color: Colors.white));
+      list.add(LSubTitle(current.rating.toString(), color: Colors.white));
       list.add(const Dot(color: Colors.white));
     }
     if (current.year != null) {
-      list.add(TSubTitle('${current.year}', color: Colors.white));
+      list.add(LSubTitle('${current.year}', color: Colors.white));
       list.add(const Dot(color: Colors.white));
     }
     list.add(
-      TSubTitle(
+      LSubTitle(
         current.isSeries
             ? '${current.series!.seasons.length} 季 · ${current.series!.episodeCount} 集'
             : formatRuntime(current.runtime),
@@ -119,7 +119,7 @@ class _HeroCarouselState extends State<HeroCarousel> {
     if (current.genres.isNotEmpty) {
       list.add(const Dot(color: Colors.white));
       list.add(
-        TSubTitle(current.genres.take(2).join(' / '), color: Colors.white),
+        LSubTitle(current.genres.take(2).join(' / '), color: Colors.white),
       );
     }
     return list;

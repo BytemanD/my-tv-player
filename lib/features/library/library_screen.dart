@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:luma_tv/controllers/library_controller.dart';
 import 'package:luma_tv/data/library_source.dart';
-// import 'package:luma_tv/core/luma_colors.dart';
-import 'package:luma_tv/widgets/button.dart';
 import 'package:luma_tv/widgets/dialog.dart';
-import 'package:luma_tv/widgets/divider.dart';
+import 'package:luma_tv/widgets/luma_widgets/divider.dart';
+import 'package:luma_tv/widgets/luma_widgets/button.dart';
 import 'package:luma_tv/widgets/luma_widgets/selector.dart';
-import 'package:luma_tv/widgets/space.dart';
-import 'package:luma_tv/widgets/text.dart';
+import 'package:luma_tv/widgets/luma_widgets/space.dart';
+import 'package:luma_tv/widgets/luma_widgets/text.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/app_controller.dart';
@@ -24,6 +23,78 @@ class LibraryScreen extends StatefulWidget {
 }
 
 class _LibraryScreenState extends State<LibraryScreen> {
+  Widget filterPanel(AppController controller, LibraryKind kind) {
+    final libraryController = context.read<LibraryController>();
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(34, 14, 56, 12),
+      sliver: SliverToBoxAdapter(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                LSelector(
+                  LibraryKind.values.map((x) => x.label).toList(),
+                  label: "类型:",
+                  variant: "text",
+                  value: LibraryKind.values.indexOf(kind),
+                  onSelect: (index) =>
+                      libraryController.setKind(LibraryKind.values[index]),
+                ),
+                const Spacer(),
+                LButton(
+                  icon: Icons.refresh_rounded,
+                  autofocus: true,
+                  color: Theme.of(context).colorScheme.primary,
+                  onClick: controller.scanAll,
+                ),
+              ],
+            ),
+            TDivider(height: 4),
+            Row(
+              children: [
+                LSpace([
+                  LSelector(
+                    LibrarySort.values.map((x) => x.label).toList(),
+                    label: "排序:",
+                    variant: "text",
+                    value: LibrarySort.values.indexOf(libraryController.sort),
+                    onSelect: (value) =>
+                        libraryController.setSort(LibrarySort.values[value]),
+                  ),
+                ]),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget emptyContainer(
+    AppController controller,
+    List<LibrarySource> sources,
+    bool hasStorageAccess,
+  ) {
+    return SliverFillRemaining(
+      hasScrollBody: false,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 56),
+        child: EmptyLibrary(
+          hasSources: sources.isNotEmpty,
+          hasAccess: hasStorageAccess,
+          onGrantAccess: controller.requestStorageAccess,
+          onAddFolder: () => showAddSourceDialog(context, controller),
+          onScan: controller.scanAll,
+          title: '这里还没有内容',
+          description: sources.isEmpty
+              ? '添加一个媒体目录，Luma 会自动扫描视频并刮削海报与元数据。'
+              : '没有符合当前筛选条件的条目。',
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = context.read<AppController>();
@@ -34,88 +105,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
       (c) => c.hasStorageAccess,
     );
 
-    final libraryController = context.read<LibraryController>();
     final kind = context.select<LibraryController, LibraryKind>((c) => c.kind);
     context.select<AppController, List<LibraryEntry>>((c) => c.entries);
     final entries = _sorted(controller.getEntriesByKind(kind));
-
-    return CustomScrollView(
+    final medias = CustomScrollView(
       slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(34, 30, 56, 12),
-          sliver: SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    TSpace([
-                      TH1('媒体库'),
-                      TDivider(),
-                      TSubTitle('${entries.length} 部'),
-                    ]),
-                    const Spacer(),
-                    TButton(
-                      icon: Icons.refresh_rounded,
-                      autofocus: true,
-                      color: Theme.of(context).colorScheme.primary,
-                      onClick: controller.scanAll,
-                    ),
-                  ],
-                ),
-                TDivider(),
-                Row(
-                  children: [
-                    LSelector(
-                      LibraryKind.values.map((x) => x.label).toList(),
-                      label: "类型:",
-                      variant: "text",
-                      value: LibraryKind.values.indexOf(kind),
-                      onSelect: (index) =>
-                          libraryController.setKind(LibraryKind.values[index]),
-                    ),
-                  ],
-                ),
-                TDivider(height: 4),
-                Row(
-                  children: [
-                    TSpace([
-                      LSelector(
-                        LibrarySort.values.map((x) => x.label).toList(),
-                        label: "排序:",
-                        variant: "text",
-                        value: LibrarySort.values.indexOf(
-                          libraryController.sort,
-                        ),
-                        onSelect: (value) => libraryController.setSort(
-                          LibrarySort.values[value],
-                        ),
-                      ),
-                    ]),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
+        filterPanel(controller, kind),
         if (entries.isEmpty)
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 56),
-              child: EmptyLibrary(
-                hasSources: sources.isNotEmpty,
-                hasAccess: hasStorageAccess,
-                onGrantAccess: controller.requestStorageAccess,
-                onAddFolder: () => showAddSourceDialog(context, controller),
-                onScan: controller.scanAll,
-                title: '这里还没有内容',
-                description: sources.isEmpty
-                    ? '添加一个媒体目录，Luma 会自动扫描视频并刮削海报与元数据。'
-                    : '没有符合当前筛选条件的条目。',
-              ),
-            ),
-          )
+          emptyContainer(controller, sources, hasStorageAccess)
         else
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(34, 12, 56, 46),
@@ -123,7 +120,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               builder: (context, constraints) {
                 final width = constraints.crossAxisExtent;
                 final columns = (width / 115).floor().clamp(3, 10);
-                const spacing = 12.0;
+                const spacing = 1.0;
                 final cellWidth = (width - spacing * (columns - 1)) / columns;
                 final cardWidth = cellWidth - 12;
                 final rowHeight = cardWidth * 1.5 + 48;
@@ -158,6 +155,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ),
       ],
     );
+
+    return Scaffold(body: medias, bottomSheet: LStrong('${entries.length} 部'));
   }
 
   double _fractionFor(AppController controller, LibraryEntry entry) {

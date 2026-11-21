@@ -1,13 +1,14 @@
 import 'package:dpad/dpad.dart';
 import 'package:flutter/material.dart';
-import 'package:luma_tv/widgets/space.dart';
-import 'package:luma_tv/widgets/text.dart';
+import 'package:luma_tv/widgets/luma_widgets/space.dart';
+import 'package:luma_tv/widgets/luma_widgets/text.dart';
 
 class LSwitch extends StatefulWidget {
   final String? title;
   final String? subTitle;
   final bool value;
   final ValueChanged<bool> onChanged;
+  final Color? color;
 
   const LSwitch(
     this.onChanged, {
@@ -15,6 +16,7 @@ class LSwitch extends StatefulWidget {
     this.title,
     this.subTitle,
     this.value = false,
+    this.color,
   });
 
   @override
@@ -36,15 +38,18 @@ class _LSwitch extends State<LSwitch> {
       child: Row(
         children: [
           Expanded(
-            child: TSpace(
-              [TH4(widget.title ?? ''), TSubTitle(widget.subTitle ?? '')],
+            child: LSpace(
+              [LH4(widget.title ?? ''), LSubTitle(widget.subTitle ?? '')],
               vertical: true,
               alighment: WrapCrossAlignment.start,
             ),
           ),
           Switch(
             value: _value,
-            activeThumbColor: Theme.of(context).colorScheme.onPrimary,
+            activeTrackColor:
+                widget.color ?? Theme.of(context).colorScheme.primary,
+            activeThumbColor: Theme.of(context).colorScheme.onPrimaryContainer,
+            // activeThumbColor: Theme.of(context).colorScheme.primary,
             onChanged: widget.onChanged,
           ), // 直接绑父级回调
         ],

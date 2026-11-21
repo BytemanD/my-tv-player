@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:dpad/dpad.dart';
-// import 'package:luma_tv/core/theme.dart';
-import 'package:luma_tv/widgets/button.dart';
-import 'package:luma_tv/widgets/divider.dart';
+import 'package:luma_tv/widgets/luma_widgets/divider.dart';
+import 'package:luma_tv/widgets/luma_widgets/button.dart';
 import 'package:luma_tv/widgets/luma_widgets/selector.dart';
-import 'package:luma_tv/widgets/space.dart';
-import 'package:luma_tv/widgets/text.dart';
+import 'package:luma_tv/widgets/luma_widgets/space.dart';
+import 'package:luma_tv/widgets/luma_widgets/text.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/app_controller.dart';
@@ -128,10 +127,10 @@ class _DetailScreenState extends State<DetailScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            TSpace([
-                              const TH2('剧集'),
+                            LSpace([
+                              const LH2('剧集'),
                               TDivider(),
-                              TSubTitle('共 ${entry.series!.episodeCount} 集'),
+                              LSubTitle('共 ${entry.series!.episodeCount} 集'),
                             ]),
                             TDivider(),
                             LSelector(
@@ -186,7 +185,7 @@ class _DetailScreenState extends State<DetailScreen> {
           Positioned(
             top: 28,
             left: 34,
-            child: TButton(
+            child: LButton(
               onClick: () => Navigator.of(context).pop(),
               icon: Icons.arrow_back_rounded,
               color: Theme.of(context).colorScheme.primary
@@ -326,10 +325,10 @@ class _Hero extends StatelessWidget {
                         if (entry.tmdbId != null)
                           Padding(
                             padding: const EdgeInsets.only(right: 8),
-                            child: TSubTitle('TMDB ${entry.tmdbId}'),
+                            child: LSubTitle('TMDB ${entry.tmdbId}'),
                           ),
                         const TDivider(),
-                        TH0(entry.title, color: Colors.white),
+                        LH0(entry.title, color: Colors.white),
                         const TDivider(height: 8),
                         Wrap(
                           crossAxisAlignment: WrapCrossAlignment.center,
@@ -346,24 +345,24 @@ class _Hero extends StatelessWidget {
                                     color: Colors.amber,
                                   ),
                                   const SizedBox(width: 4),
-                                  TSubTitle(
+                                  LSubTitle(
                                     formatRating(entry.rating),
                                     color: Colors.white,
                                   ),
                                 ],
                               ),
-                            TSubTitle(
+                            LSubTitle(
                               '${entry.year ?? "-"}',
                               color: Colors.white,
                             ),
-                            TSubTitle(
+                            LSubTitle(
                               isSeries
                                   ? '${entry.series!.seasons.length} 季 · ${entry.series!.episodeCount} 集'
                                   : formatRuntime(entry.runtime),
                               color: Colors.white,
                             ),
                             if (entry.lead.imdbId != null)
-                              TSubTitle(
+                              LSubTitle(
                                 entry.lead.imdbId!,
                                 color: Colors.white,
                               ),
@@ -371,13 +370,13 @@ class _Hero extends StatelessWidget {
                         ),
                         if (entry.genres.isNotEmpty) ...[
                           const SizedBox(height: 12),
-                          TSubTitle(
+                          LSubTitle(
                             entry.genres.take(2).join(' / '),
                             color: Colors.white,
                           ),
                         ],
                         const SizedBox(height: 16),
-                        TText(
+                        LText(
                           entry.overview?.isNotEmpty == true
                               ? entry.overview!
                               : '暂无简介。',
@@ -386,8 +385,8 @@ class _Hero extends StatelessWidget {
                           color: Colors.white,
                         ),
                         const TDivider(height: 22),
-                        TSpace([
-                          TButton(
+                        LSpace([
+                          LButton(
                             autofocus: true,
                             label: _playLabel(),
                             icon: Icons.play_arrow_rounded,
@@ -396,7 +395,7 @@ class _Hero extends StatelessWidget {
                                 .withValues(alpha: 0.5),
                           ),
                           if (onScrape != null)
-                            TButton(
+                            LButton(
                               icon: Icons.auto_awesome_rounded,
                               label: "重新刮削",
                               onClick: onScrape,
@@ -404,7 +403,7 @@ class _Hero extends StatelessWidget {
                                   .withValues(alpha: 0.5),
                             ),
                           if (!isSeries)
-                            TButton(
+                            LButton(
                               label: watched ? '标记未看' : '标记已看',
                               icon: watched
                                   ? Icons.replay_rounded
@@ -415,7 +414,7 @@ class _Hero extends StatelessWidget {
                             ),
                           if (entry.scrapeState == ScrapeState.pending ||
                               entry.scrapeState == ScrapeState.failed)
-                            TSubTitle(
+                            LSubTitle(
                               entry.scrapeState == ScrapeState.failed
                                   ? '同步未完成'
                                   : '等待同步',

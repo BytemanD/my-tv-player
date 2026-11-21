@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:luma_tv/core/common/log.dart';
-import 'package:luma_tv/widgets/divider.dart';
-import 'package:luma_tv/widgets/space.dart';
-import 'package:luma_tv/widgets/text.dart';
+import 'package:luma_tv/widgets/luma_widgets/divider.dart';
+import 'package:luma_tv/widgets/luma_widgets/space.dart';
+import 'package:luma_tv/widgets/luma_widgets/text.dart';
 import 'package:luma_tv/features/settings/tv_setting.dart';
 import 'package:provider/provider.dart';
 
@@ -22,50 +22,40 @@ class SettingsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TSpace(
-              [TH2("设置"), TSubTitle("扫描、刮削与播放偏好")],
-              alighment: WrapCrossAlignment.center,
-              space: 16,
-            ),
-            TDivider(height: 28),
-
-            TTitle("外观"),
+            LStrong("外观"),
             TvUI(),
             TDivider(),
 
-            TTitle("刮削与元数据"),
+            LStrong("刮削与元数据"),
             TvMeta(controller),
             TDivider(),
 
-            TTitle("扫描"),
+            LStrong("扫描"),
             TvScan(),
             TDivider(),
 
-            TTitle("播放"),
+            LStrong("播放"),
             TvPlayer(),
             TDivider(),
 
-            TTitle("媒体来源"),
+            LStrong("媒体来源"),
             TvMediaSource(),
             TDivider(),
 
-            TTitle("数据"),
-            TDivider(),
+            LStrong("数据"),
             TvData(),
 
             TDivider(),
             Center(
               child: Column(
                 children: [
-                  TSpace([
-                    TSubTitle(
+                  LSpace([
+                    LSubTitle(
                       controller.appVersion.isNotEmpty
                           ? controller.appVersion
                           : 'Luma',
                     ),
-                    TSubTitle(
-                      '海报与元数据由 TMDB 提供。本产品使用 TMDB API，但未获得 TMDB 认可或认证。',
-                    ),
+                    LSubTitle('海报与元数据由 TMDB和豆瓣 提供。'),
                   ], vertical: true),
                 ],
               ),

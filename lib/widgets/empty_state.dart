@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:luma_tv/widgets/button.dart';
-import 'package:luma_tv/widgets/divider.dart';
-import 'package:luma_tv/widgets/text.dart';
+import 'package:luma_tv/widgets/luma_widgets/divider.dart';
+import 'package:luma_tv/widgets/luma_widgets/button.dart';
+import 'package:luma_tv/widgets/luma_widgets/text.dart';
 
 import 'logo.dart';
 
@@ -35,9 +35,9 @@ class EmptyLibrary extends StatelessWidget {
           children: [
             const LumaMark(size: 64),
             const TDivider(height: 28),
-            TH3(title ?? (hasSources ? '媒体库还是空的' : '把你的电影，留在墙上')),
+            LH3(title ?? (hasSources ? '媒体库还是空的' : '把你的电影，留在墙上')),
             const TDivider(height: 12),
-            TText(
+            LText(
               description ??
                   (hasSources
                       ? '目录已经添加，但还没有发现视频。检查权限或重新扫描一次。'
@@ -56,12 +56,12 @@ class EmptyLibrary extends StatelessWidget {
               alignment: WrapAlignment.center,
               children: [
                 if (!hasAccess && onGrantAccess != null)
-                  TButton(
+                  LButton(
                     label: '授予文件访问权限',
                     icon: Icons.lock_open_rounded,
                     onClick: onGrantAccess!,
                   ),
-                TButton(
+                LButton(
                   label: hasSources ? '重新扫描' : '添加媒体目录',
                   icon: hasSources
                       ? Icons.refresh_rounded
@@ -69,7 +69,7 @@ class EmptyLibrary extends StatelessWidget {
                   onClick: hasSources ? onScan : onAddFolder,
                 ),
                 if (!hasSources)
-                  TButton(
+                  LButton(
                     label: '扫描整块磁盘',
                     icon: Icons.storage_rounded,
                     autofocus: false,
@@ -79,7 +79,7 @@ class EmptyLibrary extends StatelessWidget {
             ),
             if (!hasAccess) ...[
               const TDivider(height: 22),
-              TText('Android TV 需要“所有文件访问权限”才能读取外接磁盘中的视频'),
+              LText('Android TV 需要“所有文件访问权限”才能读取外接磁盘中的视频'),
             ],
           ],
         ),

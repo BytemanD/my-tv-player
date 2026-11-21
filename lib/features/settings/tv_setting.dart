@@ -4,18 +4,16 @@ import 'package:luma_tv/controllers/message_controller.dart';
 import 'package:luma_tv/controllers/theme_controller.dart';
 import 'package:luma_tv/data/library_source.dart';
 import 'package:luma_tv/data/settings_service.dart';
-import 'package:luma_tv/widgets/button.dart';
 import 'package:luma_tv/widgets/card.dart';
 import 'package:luma_tv/widgets/dialog.dart';
-import 'package:luma_tv/widgets/divider.dart';
+import 'package:luma_tv/widgets/luma_widgets/divider.dart';
+import 'package:luma_tv/widgets/luma_widgets/button.dart';
 import 'package:luma_tv/widgets/luma_widgets/chip.dart';
 import 'package:luma_tv/widgets/luma_widgets/selector.dart';
 import 'package:luma_tv/widgets/luma_widgets/switch.dart';
-// import 'package:luma_tv/widgets/selector.dart';
-import 'package:luma_tv/widgets/sheet.dart';
-import 'package:luma_tv/widgets/space.dart';
-import 'package:luma_tv/widgets/switch.dart';
-import 'package:luma_tv/widgets/text.dart';
+import 'package:luma_tv/widgets/luma_widgets/text.dart';
+import 'package:luma_tv/widgets/luma_widgets/sheet.dart';
+import 'package:luma_tv/widgets/luma_widgets/space.dart';
 import 'package:provider/provider.dart';
 
 class TvUI extends StatelessWidget {
@@ -24,25 +22,25 @@ class TvUI extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeController = context.read<ThemeController>();
-    return TSheet(
+    return LSheet(
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TH4("主题"),
-          TSubTitle('选择整体气质，后续会陆续上线更多主题'),
+          LH4("主题"),
+          LSubTitle('选择整体气质，后续会陆续上线更多主题'),
           TDivider(height: 8),
-          TSpace([
+          LSpace([
             for (final option in themeController.getThemes())
               TCard(
-                TSpace(
+                LSpace(
                   [
-                    TH4(
+                    LH4(
                       option.name,
                       color: themeController.appTheme.id == option.id
                           ? Theme.of(context).colorScheme.secondary
                           : null,
                     ),
-                    TSubTitle(
+                    LSubTitle(
                       option.hint,
                       color: themeController.appTheme.id == option.id
                           ? Colors.white
@@ -54,13 +52,12 @@ class TvUI extends StatelessWidget {
                 ),
                 selected: themeController.appTheme.id == option.id,
                 onClick: () async {
-                  // controller.setTheme(option.id)
                   await themeController.setTheme(option.id);
                 },
               ),
           ]),
-          TLine(),
-          TSwitch(
+          Divider(thickness: 1),
+          LSwitch(
             (dark) async {
               await themeController.setDark(dark);
             },
@@ -81,13 +78,13 @@ class TvMeta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TSheet(
+    return LSheet(
       Column(
         children: [
           Row(
             children: [
-              TSpace(
-                [TH4("TMDB API Key"), TSubTitle('主刮削源，未配置时无法获取海报与元数据')],
+              LSpace(
+                [LH4("TMDB API Key"), LSubTitle('主刮削源，未配置时无法获取海报与元数据')],
                 vertical: true,
                 alighment: WrapCrossAlignment.start,
                 isExpanded: true,
@@ -100,11 +97,11 @@ class TvMeta extends StatelessWidget {
               ),
             ],
           ),
-          TLine(),
+          Divider(thickness: 1),
           Row(
             children: [
-              TSpace(
-                [TH4("豆瓣 API Key（备用）"), TSubTitle('TMDB 找不到时自动尝试豆瓣')],
+              LSpace(
+                [LH4("豆瓣 API Key（备用）"), LSubTitle('TMDB 找不到时自动尝试豆瓣')],
                 vertical: true,
                 alighment: WrapCrossAlignment.start,
                 isExpanded: true,
@@ -117,24 +114,24 @@ class TvMeta extends StatelessWidget {
               ),
             ],
           ),
-          TLine(),
+          Divider(thickness: 1),
           Row(
             children: [
               if (controller.scraping)
-                TSpace(
-                  [TH4("正在刮削"), TSubTitle('NFO 与本地海报会优先于网络刮削结果。')],
+                LSpace(
+                  [LH4("正在刮削"), LSubTitle('NFO 与本地海报会优先于网络刮削结果。')],
                   vertical: true,
                   alighment: WrapCrossAlignment.start,
                   isExpanded: true,
                 )
               else
-                TSpace(
-                  [TH4("状态"), TSubTitle('NFO 与本地海报会优先于网络刮削结果。')],
+                LSpace(
+                  [LH4("状态"), LSubTitle('NFO 与本地海报会优先于网络刮削结果。')],
                   vertical: true,
                   alighment: WrapCrossAlignment.start,
                   isExpanded: true,
                 ),
-              TButton(
+              LButton(
                 label: "重新刮削全部",
                 autofocus: true,
                 icon: Icons.radar_rounded,
@@ -142,11 +139,11 @@ class TvMeta extends StatelessWidget {
               ),
             ],
           ),
-          TLine(),
+          Divider(thickness: 1),
           Row(
             children: [
-              TSpace(
-                [TH4("元数据语言"), TSubTitle('影响 TMDB 返回的标题、简介与剧集信息')],
+              LSpace(
+                [LH4("元数据语言"), LSubTitle('影响 TMDB 返回的标题、简介与剧集信息')],
                 vertical: true,
                 alighment: WrapCrossAlignment.start,
                 isExpanded: true,
@@ -186,7 +183,7 @@ class TvScan extends StatelessWidget {
     final autoScanOnStart = context.select<AppController, bool>(
       (controller) => controller.settings.autoScanOnStart,
     );
-    return TSheet(
+    return LSheet(
       Column(
         children: [
           LSwitch(
@@ -195,7 +192,7 @@ class TvScan extends StatelessWidget {
             title: "启动时自动扫描",
             subTitle: "打开应用后检查所有媒体目录是否有新文件",
           ),
-          TLine(),
+          Divider(thickness: 1),
 
           LSwitch(
             controller.setAutoScrape,
@@ -203,14 +200,14 @@ class TvScan extends StatelessWidget {
             title: "扫描后自动刮削",
             subTitle: "发现新视频后自动向 TMDB 获取海报与元数据",
           ),
-          TLine(),
+          Divider(thickness: 1),
           Row(
             children: [
               if (controller.scanning)
-                TSpace(
+                LSpace(
                   [
-                    TH4('正在扫描「${controller.scanSourceName}」'),
-                    TSubTitle(
+                    LH4('正在扫描「${controller.scanSourceName}」'),
+                    LSubTitle(
                       '已发现 ${controller.scanFound} 个视频 · ${controller.scanCurrent}',
                     ),
                   ],
@@ -219,10 +216,10 @@ class TvScan extends StatelessWidget {
                   isExpanded: true,
                 )
               else
-                TSpace(
+                LSpace(
                   [
-                    TH4("状态"),
-                    TSubTitle(
+                    LH4("状态"),
+                    LSubTitle(
                       controller.lastScanAt == null
                           ? '尚未扫描过媒体库'
                           : '上次扫描：${_formatMoment(controller.lastScanAt!)}',
@@ -233,7 +230,7 @@ class TvScan extends StatelessWidget {
                   isExpanded: true,
                 ),
 
-              TButton(
+              LButton(
                 label: "立即扫描",
                 icon: Icons.auto_awesome_rounded,
                 onClick: () async {
@@ -269,24 +266,24 @@ class TvPlayer extends StatelessWidget {
       (controller) => controller.settings.rememberPlaybackSpeed,
     );
 
-    return TSheet(
+    return LSheet(
       Column(
         children: [
-          TSwitch(
+          LSwitch(
             controller.setAutoLoadSubtitles,
             value: autoLoadSubtitles,
             title: "自动加载同名字幕",
             subTitle: "播放时自动寻找与视频同名的 .srt / .ass 字幕",
           ),
-          TLine(),
-          TSwitch(
+          Divider(thickness: 1),
+          LSwitch(
             controller.setAutoPlayNext,
             value: autoPlayNext,
             title: "自动播放下一集",
             subTitle: "当前剧集结束后继续播放下一集",
           ),
-          TLine(),
-          TSwitch(
+          Divider(thickness: 1),
+          LSwitch(
             controller.setRememberPlaybackSpeed,
             value: rememberPlaybackSpeed,
             title: "记住播放速度",
@@ -343,7 +340,7 @@ class TvMediaSource extends StatelessWidget {
       (controller) => controller.sources,
     );
 
-    return TSheet(
+    return LSheet(
       Column(
         children: [
           Row(
@@ -358,10 +355,10 @@ class TvMediaSource extends StatelessWidget {
                     : Theme.of(context).extension<SemanticColors>()?.danger,
               ),
               TDivider(),
-              TSpace(
+              LSpace(
                 [
-                  TH4(granted ? '已获得所有文件访问权限' : '尚未授予所有文件访问权限'),
-                  TSubTitle(
+                  LH4(granted ? '已获得所有文件访问权限' : '尚未授予所有文件访问权限'),
+                  LSubTitle(
                     granted
                         ? '可以读取本地存储与外接 USB 磁盘中的视频'
                         : 'Android TV 读取外接磁盘需要此权限',
@@ -371,7 +368,7 @@ class TvMediaSource extends StatelessWidget {
                 alighment: WrapCrossAlignment.start,
                 isExpanded: true,
               ),
-              TButton(
+              LButton(
                 label: granted ? '重新检查' : '去授权',
                 onClick: () async {
                   if (!granted) {
@@ -384,43 +381,41 @@ class TvMediaSource extends StatelessWidget {
               ),
             ],
           ),
-          TLine(),
+          Divider(thickness: 1),
           if (sources.isEmpty) ...[
-            TH4(
+            LH4(
               "还没有添加媒体目录",
               color: Theme.of(context).extension<SemanticColors>()?.danger,
             ),
-            TLine(),
+            Divider(thickness: 1),
           ] else ...[
-            for (var i = 0; i < sources.length; i++) ...[
-              Row(
+            ...sources.map((source) {
+              return Column(
                 children: [
-                  Icon(Icons.folder_outlined),
-                  TDivider(),
-                  Expanded(
-                    child: TSpace(
-                      [TH4(sources[i].name), TSubTitle(sources[i].path)],
-                      vertical: true,
-                      alighment: WrapCrossAlignment.start,
-                    ),
+                  Row(
+                    children: [
+                      const Icon(Icons.folder_outlined),
+                      const TDivider(),
+                      Expanded(child: LSubTitle(source.path)),
+                      LButton(
+                        icon: Icons.remove_circle_outline_rounded,
+                        color: Theme.of(context)
+                            .extension<SemanticColors>()
+                            ?.danger,
+                        onClick: () =>
+                            _removeSource(context, controller, source),
+                      ),
+                    ],
                   ),
-                  TButton(
-                    icon: Icons.remove_circle_outline_rounded,
-                    color: Theme.of(context)
-                        .extension<SemanticColors>()
-                        ?.danger,
-                    onClick: () =>
-                        _removeSource(context, controller, sources[i]),
-                  ),
+                  const Divider(thickness: 0.5, indent: 38),
                 ],
-              ),
-              const TLine(indent: 18),
-            ],
+              );
+            }),
           ],
           Row(
             children: [
               Expanded(
-                child: TButton(
+                child: LButton(
                   label: "添加目录",
                   icon: Icons.add_rounded,
                   onClick: () => showAddSourceDialog(context, controller),
@@ -460,18 +455,18 @@ class TvData extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = context.read<AppController>();
 
-    return TSheet(
+    return LSheet(
       Column(
         children: [
           Row(
             children: [
-              TSpace(
-                [TH4('清空媒体库'), TSubTitle("移除所有影片、剧集与播放进度，不会删除硬盘上的视频文件")],
+              LSpace(
+                [LH4('清空媒体库'), LSubTitle("移除所有影片、剧集与播放进度，不会删除硬盘上的视频文件")],
                 vertical: true,
                 alighment: WrapCrossAlignment.start,
                 isExpanded: true,
               ),
-              TButton(
+              LButton(
                 label: '清空',
                 icon: Icons.delete_outline_rounded,
                 color: Theme.of(context).extension<SemanticColors>()?.danger,
@@ -481,16 +476,16 @@ class TvData extends StatelessWidget {
               ),
             ],
           ),
-          TLine(),
+          Divider(thickness: 1),
           Row(
             children: [
-              TSpace(
-                [TH4('引导'), TSubTitle("进入应用欢迎页")],
+              LSpace(
+                [LH4('引导'), LSubTitle("进入应用欢迎页")],
                 vertical: true,
                 alighment: WrapCrossAlignment.start,
                 isExpanded: true,
               ),
-              TButton(
+              LButton(
                 label: '进入',
                 // icon: Icons.mediation,
                 onClick: controller.notCompleteOnboarding,
