@@ -6,7 +6,7 @@ UI 语言中文优先。
 
 ## 概览
 
-[主页预览](docs/home1.png)
+![主页预览](docs/home1.png)
 
 ## 功能特性
 
